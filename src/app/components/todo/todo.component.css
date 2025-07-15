@@ -1,9 +1,21 @@
-/* Todo Component Specific Styles */
+/* Import CKEditor 5 Premium styles */
+@import 'ckeditor5/ckeditor5.css';
 
+/* Custom font for professional look */
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* CKEditor root variables */
+:root {
+  --ck-content-font-family: 'Lato', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --ck-sidebar-width: 270px;
+}
+
+/* Todo Component Specific Styles */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  font-family: var(--ck-content-font-family);
 }
 
 .header {
@@ -127,21 +139,68 @@
   color: #444;
 }
 
-.todo-content h1,
-.todo-content h2,
-.todo-content h3 {
-  margin: 10px 0;
+/* Enhanced CKEditor content styling */
+.todo-content.ck-content h1,
+.todo-content.ck-content h2,
+.todo-content.ck-content h3 {
+  margin: 15px 0 10px 0;
   color: #333;
+  font-weight: 600;
 }
 
-.todo-content ul,
-.todo-content ol {
+.todo-content.ck-content h1 { font-size: 1.8em; }
+.todo-content.ck-content h2 { font-size: 1.5em; }
+.todo-content.ck-content h3 { font-size: 1.3em; }
+
+.todo-content.ck-content ul,
+.todo-content.ck-content ol {
   margin: 10px 0;
   padding-left: 20px;
 }
 
-.todo-content li {
+.todo-content.ck-content li {
   margin: 5px 0;
+}
+
+.todo-content.ck-content blockquote {
+  margin: 15px 0;
+  padding: 10px 20px;
+  border-left: 4px solid #007ACC;
+  background: #f8f9fa;
+  font-style: italic;
+}
+
+.todo-content.ck-content table {
+  border-collapse: collapse;
+  margin: 15px 0;
+  width: 100%;
+}
+
+.todo-content.ck-content table td,
+.todo-content.ck-content table th {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+}
+
+.todo-content.ck-content table th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.todo-content.ck-content .todo-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.todo-content.ck-content .todo-list__item {
+  display: flex;
+  align-items: flex-start;
+  margin: 5px 0;
+}
+
+.todo-content.ck-content .todo-list__item--completed {
+  text-decoration: line-through;
+  opacity: 0.7;
 }
 
 .todo-actions {
@@ -163,138 +222,187 @@
   letter-spacing: 0.5px;
 }
 
-/* Filter buttons styling */
-.filter-buttons {
+/* Premium CKEditor container styling */
+.editor-container {
+  margin: 10px 0;
+}
+
+.editor-container__editor {
+  position: relative;
+}
+
+.editor-container_classic-editor .editor-container__editor {
+  min-width: 100%;
+  max-width: 100%;
+}
+
+/* Word count styling */
+.editor_container__word-count .ck-word-count {
+  color: var(--ck-color-text);
   display: flex;
-  gap: 10px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  height: 20px;
+  gap: var(--ck-spacing-small);
+  justify-content: flex-end;
+  font-size: var(--ck-font-size-base);
+  line-height: var(--ck-line-height-base);
+  font-family: var(--ck-font-face);
+  padding: var(--ck-spacing-small) var(--ck-spacing-standard);
 }
 
-/* Search box styling */
-.search-container {
-  margin: 20px 0;
+.editor-container_classic-editor .editor_container__word-count {
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: var(--ck-border-radius);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: none;
+  background: #f8f9fa;
 }
 
-/* Enhanced CKEditor styling for better balloon toolbar */
-:host ::ng-deep .ck-editor__editable {
+.editor-container_classic-editor .editor-container__editor .ck-editor .ck-editor__editable {
+  border-radius: 0;
   min-height: 150px;
-  max-height: 300px;
-  padding: 15px;
-  font-size: 14px;
-  line-height: 1.6;
-  border-radius: 4px;
 }
 
-:host ::ng-deep .ck-editor__editable:focus {
-  border-color: #007ACC;
-  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
-}
-
-/* Enhanced balloon toolbar styling */
+/* Premium balloon toolbar styling */
 :host ::ng-deep .ck-balloon-panel {
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   border: 1px solid #e0e0e0;
-  animation: balloonFadeIn 0.2s ease-out;
+  animation: balloonFadeIn 0.3s ease-out;
+  backdrop-filter: blur(10px);
 }
 
 @keyframes balloonFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(10px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Make balloon toolbar more prominent */
+/* Enhanced balloon toolbar */
 :host ::ng-deep .ck-toolbar.ck-balloon-toolbar {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
   border: none;
   border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 10px 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
 }
 
-/* Style balloon toolbar buttons */
+/* Premium balloon toolbar buttons */
 :host ::ng-deep .ck-balloon-toolbar .ck-button {
-  border-radius: 4px;
+  border-radius: 6px;
   margin: 0 2px;
   transition: all 0.2s ease;
+  padding: 8px 10px;
 }
 
 :host ::ng-deep .ck-balloon-toolbar .ck-button:hover {
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  border-color: #007ACC;
+  transform: translateY(-1px);
+}
+
+:host ::ng-deep .ck-balloon-toolbar .ck-button.ck-on {
+  background: linear-gradient(135deg, #007ACC 0%, #0056b3 100%);
+  color: white;
+  border-color: #007ACC;
+  box-shadow: 0 2px 8px rgba(0, 122, 204, 0.3);
+}
+
+/* Block toolbar styling */
+:host ::ng-deep .ck-block-toolbar-button {
+  background: linear-gradient(135deg, #007ACC 0%, #0056b3 100%);
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 122, 204, 0.3);
+  transition: all 0.2s ease;
+}
+
+:host ::ng-deep .ck-block-toolbar-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 122, 204, 0.4);
+}
+
+/* Main editor styling */
+:host ::ng-deep .ck-editor__editable {
+  font-family: var(--ck-content-font-family);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+:host ::ng-deep .ck-editor__editable:focus {
+  border-color: #007ACC;
+  box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
+  outline: none;
+}
+
+/* Main toolbar styling */
+:host ::ng-deep .ck-toolbar {
+  border: 2px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  padding: 10px;
+}
+
+/* Toolbar button styling */
+:host ::ng-deep .ck-toolbar .ck-button {
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+:host ::ng-deep .ck-toolbar .ck-button:hover {
   background: #f0f8ff;
   border-color: #007ACC;
 }
 
-:host ::ng-deep .ck-balloon-toolbar .ck-button.ck-on {
+:host ::ng-deep .ck-toolbar .ck-button.ck-on {
   background: #007ACC;
   color: white;
   border-color: #007ACC;
 }
 
-/* Hide the default toolbar when balloon is active */
-:host ::ng-deep .ck-editor__editable:focus + .ck-toolbar {
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
+/* Image styling */
+:host ::ng-deep .ck-content .image {
+  margin: 15px auto;
+  text-align: center;
 }
 
-/* Main toolbar styling */
-:host ::ng-deep .ck-toolbar {
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
+:host ::ng-deep .ck-content .image img {
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  height: auto;
 }
 
-:host ::ng-deep .ck-editor__editable {
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+/* Table styling */
+:host ::ng-deep .ck-content .table {
+  margin: 15px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Selection highlighting */
-:host ::ng-deep .ck-editor__editable .ck-widget.ck-widget_selected {
-  outline: 2px solid #007ACC;
-  outline-offset: 2px;
+/* Link styling */
+:host ::ng-deep .ck-content a {
+  color: #007ACC;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
 }
 
-/* Text selection styling */
-:host ::ng-deep .ck-editor__editable::selection {
-  background: rgba(0, 122, 204, 0.2);
-}
-
-/* Placeholder styling */
-:host ::ng-deep .ck-editor__editable .ck-placeholder {
-  color: #999;
-  font-style: italic;
-}
-
-/* Balloon toolbar arrow styling */
-:host ::ng-deep .ck-balloon-panel .ck-balloon-panel_arrow_s:after,
-:host ::ng-deep .ck-balloon-panel .ck-balloon-panel_arrow_n:after {
-  border-color: #ffffff transparent;
-}
-
-/* Custom tooltip for better UX */
-.editor-tooltip {
-  position: absolute;
-  background: #333;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  z-index: 1000;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-}
-
-.editor-tooltip.show {
-  opacity: 1;
+:host ::ng-deep .ck-content a:hover {
+  border-bottom-color: #007ACC;
 }
 
 /* Responsive design */
@@ -324,15 +432,20 @@
     gap: 8px;
   }
 
+  /* Mobile-optimized editor */
+  :host ::ng-deep .ck-editor__editable {
+    padding: 15px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
   /* Mobile balloon toolbar */
   :host ::ng-deep .ck-balloon-toolbar {
     transform: scale(0.9);
     transform-origin: center;
   }
 
-  :host ::ng-deep .ck-editor__editable {
-    min-height: 120px;
-    font-size: 16px; /* Prevent zoom on iOS */
+  .editor-container_classic-editor .editor-container__editor {
+    min-width: 100%;
   }
 }
 
@@ -353,45 +466,11 @@
     padding: 20px;
   }
 
-  /* Mobile-optimized balloon toolbar */
+  /* Extra small mobile optimization */
   :host ::ng-deep .ck-balloon-toolbar {
     transform: scale(0.8);
     max-width: 90vw;
   }
-}
-
-/* Form validation styling */
-.form-error {
-  color: #dc3545;
-  font-size: 12px;
-  margin-top: 5px;
-  display: block;
-}
-
-/* Loading animation */
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  color: #666;
-}
-
-/* Empty state styling */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: #666;
-}
-
-.empty-state h3 {
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.empty-state p {
-  margin-bottom: 20px;
-  font-size: 1.1em;
 }
 
 /* Animation classes */
@@ -410,22 +489,7 @@
   }
 }
 
-.slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Popup styling */
+/* DevExpress popup styling */
 :host ::ng-deep .dx-popup-content {
   padding: 20px;
 }
@@ -436,12 +500,29 @@
   color: #333;
 }
 
-/* Enhanced selection visual feedback */
-:host ::ng-deep .ck-editor__editable .ck-widget.ck-widget_selected,
-:host ::ng-deep .ck-editor__editable .ck-widget.ck-widget_selected:hover {
-  outline: 2px solid #007ACC;
-  outline-offset: 2px;
-  background: rgba(0, 122, 204, 0.05);
+/* Loading and empty states */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-state h3 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+  font-size: 1.1em;
 }
 
 /* Smooth transitions for all interactive elements */

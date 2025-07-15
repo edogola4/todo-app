@@ -1,56 +1,45 @@
 {
-  "name": "devexpress-todos-app",
-  "version": "0.0.0",
+  "name": "devexpress-todo-app",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
-  },
-  "prettier": {
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
+    "test": "ng test",
+    "serve": "ng serve --open",
+    "build-prod": "ng build --configuration production"
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^20.1.0",
-    "@angular/cdk": "^20.1.0",
-    "@angular/common": "^20.1.0",
-    "@angular/compiler": "^20.1.0",
-    "@angular/core": "^20.1.0",
-    "@angular/forms": "^20.1.0",
-    "@angular/material": "^20.1.0",
-    "@angular/platform-browser": "^20.1.0",
-    "@angular/router": "^20.1.0",
+    "@angular/animations": "^17.0.0",
+    "@angular/common": "^17.0.0",
+    "@angular/compiler": "^17.0.0",
+    "@angular/core": "^17.0.0",
+    "@angular/forms": "^17.0.0",
+    "@angular/platform-browser": "^17.0.0",
+    "@angular/platform-browser-dynamic": "^17.0.0",
+    "@angular/router": "^17.0.0",
+    "devextreme": "^23.2.0",
+    "devextreme-angular": "^23.2.0",
+    "ckeditor5": "^41.1.0",
+    "ckeditor5-premium-features": "^41.1.0",
     "@ckeditor/ckeditor5-angular": "^7.0.1",
-    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
-    "@types/uuid": "^10.0.0",
-    "devextreme": "^25.1.3",
-    "devextreme-angular": "^25.1.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "uuid": "^11.1.0",
-    "zone.js": "~0.15.0"
+    "zone.js": "~0.14.0"
   },
   "devDependencies": {
-    "@angular/build": "^20.1.0",
-    "@angular/cli": "^20.1.0",
-    "@angular/compiler-cli": "^20.1.0",
-    "@ckeditor/ckeditor5-core": "^41.4.2",
+    "@angular-devkit/build-angular": "^17.0.0",
+    "@angular/cli": "^17.0.0",
+    "@angular/compiler-cli": "^17.0.0",
     "@types/jasmine": "~5.1.0",
-    "jasmine-core": "~5.8.0",
+    "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.8.2"
+    "typescript": "~5.2.0"
   }
 }
