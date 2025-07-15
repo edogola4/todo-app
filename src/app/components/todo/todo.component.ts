@@ -60,22 +60,22 @@ export class TodoComponent implements OnInit, OnDestroy {
     byPriority: { high: 0, medium: 0, low: 0 }
   };
 
-  // Simple config using any type to avoid conflicts
+  // Enhanced config with more toolbar features
   public editorConfig: any = {
     toolbar: [
       'heading', '|',
-      'bold', 'italic', '|',
+      'bold', 'italic', 'underline', '|',
       'link', 'bulletedList', 'numberedList', '|',
       'blockQuote', 'insertTable', '|',
       'undo', 'redo'
     ],
     language: 'en',
-    placeholder: 'Start typing... Select text to see formatting options!'
+    placeholder: 'Start typing... Select text to see enhanced formatting options!'
   };
 
   private destroy$ = new Subject<void>();
   private balloonToolbarElement: HTMLElement | null = null;
-  private currentEditor: any = null; // Store the current editor instance
+  private currentEditor: any = null;
 
   constructor(
     private todoService: TodoService,
@@ -95,17 +95,14 @@ export class TodoComponent implements OnInit, OnDestroy {
       category: ['General']
     });
 
-    // Load CKEditor dynamically to avoid type conflicts
     this.loadCKEditor();
   }
 
   async loadCKEditor() {
     try {
-      // Use the classic build that works
       const ClassicEditor = await import('@ckeditor/ckeditor5-build-classic');
       this.Editor = (ClassicEditor as any).default;
       
-      // Set layout ready after editor loads
       setTimeout(() => {
         this.isLayoutReady = true;
       }, 100);
@@ -113,34 +110,28 @@ export class TodoComponent implements OnInit, OnDestroy {
       console.log('CKEditor loaded successfully!');
     } catch (error) {
       console.error('Error loading CKEditor:', error);
-      // Set layout ready even if editor fails
       this.isLayoutReady = true;
     }
   }
 
-  // Enhanced event handlers using any type
   public onEditorReady(editor: any): void {
     console.log('CKEditor is ready!');
-    
-    // Store the editor instance
     this.currentEditor = editor;
     
-    // Check available commands
+    // Log available commands for debugging
     console.log('Available commands:', Object.keys(editor.commands._commands || {}));
     
-    // Custom balloon toolbar implementation
-    this.setupCustomBalloonToolbar(editor);
+    this.setupEnhancedBalloonToolbar(editor);
     
-    // Track text selection
     try {
       if (editor.model && editor.model.document && editor.model.document.selection) {
         editor.model.document.selection.on('change:range', () => {
           const selection = editor.model.document.selection;
           if (!selection.isCollapsed) {
-            console.log('Text selected - showing custom balloon toolbar');
-            this.showCustomBalloonToolbar(editor, selection);
+            console.log('Text selected - showing enhanced balloon toolbar');
+            this.showEnhancedBalloonToolbar(editor, selection);
           } else {
-            this.hideCustomBalloonToolbar();
+            this.hideEnhancedBalloonToolbar();
           }
         });
       }
@@ -148,11 +139,10 @@ export class TodoComponent implements OnInit, OnDestroy {
       console.log('Selection tracking setup failed, but that\'s okay');
     }
 
-    // Listen for editor blur to hide balloon toolbar
     try {
       if (editor.editing && editor.editing.view && editor.editing.view.document) {
         editor.editing.view.document.on('blur', () => {
-          setTimeout(() => this.hideCustomBalloonToolbar(), 200);
+          setTimeout(() => this.hideEnhancedBalloonToolbar(), 200);
         });
       }
     } catch (error) {
@@ -160,11 +150,10 @@ export class TodoComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setupCustomBalloonToolbar(editor: any): void {
-    // Create custom balloon toolbar element
+  private setupEnhancedBalloonToolbar(editor: any): void {
     if (!this.balloonToolbarElement) {
       this.balloonToolbarElement = document.createElement('div');
-      this.balloonToolbarElement.className = 'custom-balloon-toolbar';
+      this.balloonToolbarElement.className = 'enhanced-balloon-toolbar';
       this.balloonToolbarElement.style.cssText = `
         position: fixed;
         background: white;
@@ -175,102 +164,209 @@ export class TodoComponent implements OnInit, OnDestroy {
         display: none;
         z-index: 9999;
         backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.98);
         user-select: none;
+        max-width: 600px;
+        white-space: nowrap;
+        overflow-x: auto;
       `;
 
-      // Add toolbar buttons with conditional underline
+      // Enhanced toolbar with working heading dropdown
       this.balloonToolbarElement.innerHTML = `
+        <!-- Heading Dropdown -->
+        <select class="balloon-select" id="heading-select" title="Change Heading">
+          <option value="paragraph">Paragraph</option>
+          <option value="heading1">Heading 1</option>
+          <option value="heading2">Heading 2</option>
+          <option value="heading3">Heading 3</option>
+        </select>
+        
+        <span class="balloon-separator">|</span>
+        
+        <!-- Basic Formatting -->
         <button type="button" class="balloon-btn" data-command="bold" title="Bold">
           <strong>B</strong>
         </button>
         <button type="button" class="balloon-btn" data-command="italic" title="Italic">
           <em>I</em>
         </button>
-        <button type="button" class="balloon-btn" data-command="customUnderline" title="Underline">
+        <button type="button" class="balloon-btn" data-command="underline" title="Underline">
           <u>U</u>
         </button>
+        
         <span class="balloon-separator">|</span>
+        
+        <!-- Link -->
         <button type="button" class="balloon-btn" data-command="link" title="Add Link">
           🔗
         </button>
+        
+        <span class="balloon-separator">|</span>
+        
+        <!-- Lists -->
         <button type="button" class="balloon-btn" data-command="bulletedList" title="Bullet List">
           •
         </button>
         <button type="button" class="balloon-btn" data-command="numberedList" title="Numbered List">
           1.
         </button>
+        
         <span class="balloon-separator">|</span>
+        
+        <!-- Quote -->
         <button type="button" class="balloon-btn" data-command="blockQuote" title="Quote">
-          "</button>
+          "
+        </button>
+        
+        <!-- Table -->
+        <button type="button" class="balloon-btn" data-command="insertTable" title="Insert Table">
+          ⊞
+        </button>
+        
+        <span class="balloon-separator">|</span>
+        
+        <!-- Undo/Redo -->
+        <button type="button" class="balloon-btn" data-command="undo" title="Undo">
+          ↶
+        </button>
+        <button type="button" class="balloon-btn" data-command="redo" title="Redo">
+          ↷
+        </button>
       `;
 
-      // Add CSS for buttons
+      // Enhanced CSS for the toolbar
       const style = document.createElement('style');
       style.textContent = `
-        .custom-balloon-toolbar {
+        .enhanced-balloon-toolbar {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          display: flex;
+          align-items: center;
+          gap: 2px;
         }
+        
         .balloon-btn {
           background: none;
           border: 1px solid transparent;
-          padding: 8px 10px;
-          margin: 0 2px;
+          padding: 6px 8px;
+          margin: 0 1px;
           border-radius: 4px;
           cursor: pointer;
-          font-size: 14px;
-          min-width: 28px;
-          height: 28px;
+          font-size: 13px;
+          min-width: 26px;
+          height: 26px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           transition: all 0.2s ease;
           user-select: none;
+          color: #333;
         }
+        
         .balloon-btn:hover {
           background: #f0f8ff;
           border: 1px solid #007ACC;
           transform: translateY(-1px);
         }
+        
         .balloon-btn:active {
           transform: translateY(0);
         }
+        
         .balloon-btn.active {
           background: #007ACC;
           color: white;
           border: 1px solid #007ACC;
         }
+        
+        .balloon-select {
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          padding: 4px 8px;
+          margin: 0 2px;
+          font-size: 12px;
+          cursor: pointer;
+          min-width: 100px;
+          height: 26px;
+          transition: all 0.2s ease;
+          color: #333;
+        }
+        
+        .balloon-select:hover {
+          border-color: #007ACC;
+          background: #f0f8ff;
+        }
+        
+        .balloon-select:focus {
+          outline: none;
+          border-color: #007ACC;
+          box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+        }
+        
         .balloon-separator {
-          margin: 0 6px;
+          margin: 0 4px;
           color: #ddd;
           font-weight: bold;
+          font-size: 14px;
         }
-        .underlined-text {
-          text-decoration: underline;
+        
+        /* Scrollbar for overflow */
+        .enhanced-balloon-toolbar::-webkit-scrollbar {
+          height: 4px;
+        }
+        
+        .enhanced-balloon-toolbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 2px;
+        }
+        
+        .enhanced-balloon-toolbar::-webkit-scrollbar-thumb {
+          background: #007ACC;
+          border-radius: 2px;
+        }
+        
+        .enhanced-balloon-toolbar::-webkit-scrollbar-thumb:hover {
+          background: #0056b3;
         }
       `;
       document.head.appendChild(style);
 
-      // Add click handlers with proper command execution
+      // Enhanced event handlers
       this.balloonToolbarElement.addEventListener('mousedown', (event) => {
-        // Prevent editor from losing focus
         event.preventDefault();
       });
 
       this.balloonToolbarElement.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
         const button = target.closest('.balloon-btn') as HTMLElement;
+        
         if (button && button.dataset['command']) {
           event.preventDefault();
           event.stopPropagation();
+          this.executeEnhancedCommand(this.currentEditor, button.dataset['command']);
+          setTimeout(() => this.updateEnhancedBalloonStates(this.currentEditor), 50);
+        }
+      });
+
+      // Fixed heading dropdown handler
+      this.balloonToolbarElement.addEventListener('change', (event) => {
+        const target = event.target as HTMLSelectElement;
+        if (target.id === 'heading-select') {
+          event.preventDefault();
+          event.stopPropagation();
           
-          // Execute command with current editor
-          this.executeCommand(this.currentEditor, button.dataset['command']);
+          const value = target.value;
+          console.log('Heading dropdown changed to:', value);
           
-          // Update toolbar states
+          // Focus editor first
+          this.currentEditor.editing.view.focus();
+          
+          // Execute the heading command properly
+          this.executeHeadingCommand(this.currentEditor, value);
+          
           setTimeout(() => {
-            this.updateBalloonToolbarStates(this.currentEditor);
-          }, 50);
+            this.updateEnhancedBalloonStates(this.currentEditor);
+          }, 100);
         }
       });
 
@@ -278,20 +374,52 @@ export class TodoComponent implements OnInit, OnDestroy {
     }
   }
 
-  private showCustomBalloonToolbar(editor: any, selection: any): void {
+  private executeHeadingCommand(editor: any, value: string): void {
+    console.log('Executing heading command:', value);
+    
+    try {
+      if (value === 'paragraph') {
+        // Convert to paragraph - remove heading
+        if (editor.commands.get('heading')) {
+          editor.execute('heading', { value: false });
+        }
+      } else if (value === 'heading1' || value === 'heading2' || value === 'heading3') {
+        // Apply heading
+        if (editor.commands.get('heading')) {
+          editor.execute('heading', { value: value });
+        }
+      }
+      
+      console.log('Heading command executed successfully');
+    } catch (error) {
+      console.error('Error executing heading command:', error);
+      
+      // Alternative method using format commands
+      try {
+        if (value === 'paragraph') {
+          // Try to clear formatting
+          editor.execute('paragraph');
+        } else {
+          // Try direct heading execution
+          editor.execute(value);
+        }
+      } catch (alternativeError) {
+        console.error('Alternative heading method also failed:', alternativeError);
+      }
+    }
+  }
+
+  private showEnhancedBalloonToolbar(editor: any, selection: any): void {
     if (!this.balloonToolbarElement) return;
 
-    // Get the selection rect from the browser selection
     const domSelection = window.getSelection();
     if (domSelection && domSelection.rangeCount > 0) {
       const range = domSelection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
       
       if (rect.width > 0 && rect.height > 0) {
-        // Position the balloon toolbar above the selection
-        this.balloonToolbarElement.style.display = 'block';
+        this.balloonToolbarElement.style.display = 'flex';
         
-        // Calculate position
         const toolbarWidth = this.balloonToolbarElement.offsetWidth;
         const toolbarHeight = this.balloonToolbarElement.offsetHeight;
         
@@ -304,37 +432,33 @@ export class TodoComponent implements OnInit, OnDestroy {
           left = window.innerWidth - toolbarWidth - 10;
         }
         if (top < 10) {
-          top = rect.bottom + 10; // Show below if no space above
+          top = rect.bottom + 10;
         }
         
         this.balloonToolbarElement.style.left = `${left}px`;
         this.balloonToolbarElement.style.top = `${top}px`;
 
-        // Update button states based on current formatting
-        this.updateBalloonToolbarStates(editor);
+        this.updateEnhancedBalloonStates(editor);
       }
     }
   }
 
-  private hideCustomBalloonToolbar(): void {
+  private hideEnhancedBalloonToolbar(): void {
     if (this.balloonToolbarElement) {
       this.balloonToolbarElement.style.display = 'none';
     }
   }
 
-  private updateBalloonToolbarStates(editor: any): void {
+  private updateEnhancedBalloonStates(editor: any): void {
     if (!this.balloonToolbarElement || !editor) return;
 
+    // Update button states
     const buttons = this.balloonToolbarElement.querySelectorAll('.balloon-btn');
     buttons.forEach((button: Element) => {
       const htmlButton = button as HTMLElement;
       const command = htmlButton.dataset['command'];
       
-      if (command === 'customUnderline') {
-        // Check for underline attribute manually
-        const hasUnderline = this.checkForUnderlineAttribute(editor);
-        htmlButton.classList.toggle('active', hasUnderline);
-      } else if (command && editor.commands && editor.commands.get) {
+      if (command && editor.commands && editor.commands.get) {
         try {
           const commandObj = editor.commands.get(command);
           if (commandObj) {
@@ -345,46 +469,32 @@ export class TodoComponent implements OnInit, OnDestroy {
         }
       }
     });
-  }
 
-  private checkForUnderlineAttribute(editor: any): boolean {
-    try {
-      const selection = editor.model.document.selection;
-      const firstPosition = selection.getFirstPosition();
-      
-      if (firstPosition) {
-        const attributes = firstPosition.textNode?.getAttributes() || new Map();
-        return attributes.has('underline') || this.hasUnderlineInSelection(editor);
-      }
-      return false;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  private hasUnderlineInSelection(editor: any): boolean {
-    try {
-      // Check if any selected content has underline styling
-      const viewSelection = editor.editing.view.document.selection;
-      
-      for (const range of viewSelection.getRanges()) {
-        for (const item of range.getItems()) {
-          if (item.is && item.is('element') && item.hasStyle && item.hasStyle('text-decoration')) {
-            const textDecoration = item.getStyle('text-decoration');
-            if (textDecoration && textDecoration.includes('underline')) {
-              return true;
-            }
-          }
+    // Update heading dropdown state
+    const headingSelect = this.balloonToolbarElement.querySelector('#heading-select') as HTMLSelectElement;
+    if (headingSelect && editor.commands.get('heading')) {
+      try {
+        const headingCommand = editor.commands.get('heading');
+        const currentHeading = headingCommand.value;
+        
+        console.log('Current heading value:', currentHeading);
+        
+        if (currentHeading === false || currentHeading === null || currentHeading === undefined) {
+          headingSelect.value = 'paragraph';
+        } else if (typeof currentHeading === 'string') {
+          headingSelect.value = currentHeading;
+        } else {
+          headingSelect.value = 'paragraph';
         }
+      } catch (error) {
+        console.log('Could not update heading dropdown state:', error);
+        headingSelect.value = 'paragraph';
       }
-      return false;
-    } catch (error) {
-      return false;
     }
   }
 
-  private executeCommand(editor: any, command: string): void {
-    console.log(`Executing command: ${command}`);
+  private executeEnhancedCommand(editor: any, command: string): void {
+    console.log(`Executing enhanced command: ${command}`);
     
     if (!editor || !editor.execute) {
       console.error('Editor not available for command execution');
@@ -392,149 +502,75 @@ export class TodoComponent implements OnInit, OnDestroy {
     }
 
     try {
-      // Focus the editor first to ensure proper command execution
       editor.editing.view.focus();
       
-      if (command === 'customUnderline') {
-        // Custom underline implementation
+      if (command === 'underline') {
         this.executeCustomUnderline(editor);
       } else if (command === 'link') {
-        // Handle link command specially
-        const selection = editor.model.document.selection;
         const selectedText = this.getSelectedText(editor);
-        
         if (selectedText) {
           const url = prompt('Enter URL:', 'https://');
           if (url && url.trim()) {
             editor.execute('link', url.trim());
-            console.log('Link command executed successfully');
           }
         } else {
           alert('Please select text first to add a link');
         }
+      } else if (command === 'insertTable') {
+        editor.execute('insertTable', { rows: 2, columns: 2 });
       } else {
-        // Execute other commands
         editor.execute(command);
-        console.log(`Command ${command} executed successfully`);
       }
       
-      // Keep editor focused
       setTimeout(() => {
         editor.editing.view.focus();
       }, 10);
       
     } catch (error) {
-      console.error(`Error executing command ${command}:`, error);
+      console.error(`Error executing enhanced command ${command}:`, error);
     }
   }
 
   private executeCustomUnderline(editor: any): void {
     try {
-      // Try the standard underline command first
       if (editor.commands.get('underline')) {
         editor.execute('underline');
         return;
       }
 
-      // Fallback: Use HTML support to add underline styling
-      const selection = editor.model.document.selection;
-      const ranges = Array.from(selection.getRanges());
-      
-      if (ranges.length === 0) return;
-
-      editor.model.change((writer: any) => {
-        for (const range of ranges) {
-          // Cast range to any to avoid type issues
-          const typedRange = range as any;
-          
-          // Check if text is already underlined
-          const hasUnderline = this.checkForUnderlineAttribute(editor);
-          
-          if (hasUnderline) {
-            // Remove underline
-            writer.removeAttribute('underline', typedRange);
-            // Also try to remove style attribute
-            try {
-              for (const item of typedRange.getItems()) {
-                if (item.is && item.is('element')) {
-                  writer.removeAttribute('style', item);
-                }
-              }
-            } catch (e) {
-              // Ignore if getItems doesn't work
-            }
-          } else {
-            // Add underline
-            writer.setAttribute('underline', true, typedRange);
-            // Also add HTML style as fallback
-            try {
-              for (const item of typedRange.getItems()) {
-                if (item.is && item.is('element')) {
-                  writer.setAttribute('style', 'text-decoration: underline;', item);
-                }
-              }
-            } catch (e) {
-              // Ignore if getItems doesn't work
-            }
-          }
-        }
-      });
-
-      console.log('Custom underline executed successfully');
-    } catch (error) {
-      console.error('Custom underline failed, trying alternative method:', error);
-      this.executeUnderlineAlternative(editor);
-    }
-  }
-
-  private executeUnderlineAlternative(editor: any): void {
-    try {
-      // Alternative: Insert HTML with underline
+      // Fallback method using direct DOM manipulation
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const selectedText = range.toString();
         
         if (selectedText) {
-          // Check if already underlined
           const parentElement = range.commonAncestorContainer.parentElement;
           const isUnderlined = parentElement?.style.textDecoration?.includes('underline') ||
                               parentElement?.tagName === 'U';
           
           if (isUnderlined) {
-            // Remove underline
             const textNode = document.createTextNode(selectedText);
             range.deleteContents();
             range.insertNode(textNode);
           } else {
-            // Add underline
             const underlineElement = document.createElement('u');
             underlineElement.textContent = selectedText;
             range.deleteContents();
             range.insertNode(underlineElement);
           }
           
-          // Clear selection
           selection.removeAllRanges();
-          
-          console.log('Alternative underline method executed');
         }
       }
     } catch (error) {
-      console.error('Alternative underline method failed:', error);
+      console.error('Custom underline failed:', error);
     }
   }
 
   private getSelectedText(editor: any): string {
     try {
       const selection = editor.model.document.selection;
-      const selectedElement = selection.getSelectedElement();
-      
-      if (selectedElement) {
-        return selectedElement.data || '';
-      }
-      
-      // Get text from range
       let text = '';
       for (const range of selection.getRanges()) {
         for (const item of (range as any).getItems()) {
@@ -545,22 +581,19 @@ export class TodoComponent implements OnInit, OnDestroy {
       }
       return text;
     } catch (error) {
-      console.error('Error getting selected text:', error);
       return '';
     }
   }
 
-  // Event handlers using any type to avoid TypeScript conflicts
   public onEditorFocus(event: any): void {
     console.log('Editor focused');
   }
 
   public onEditorBlur(event: any): void {
     console.log('Editor blurred');
-    // Hide balloon toolbar when editor loses focus (with delay to allow clicking toolbar)
     setTimeout(() => {
       if (!this.balloonToolbarElement?.matches(':hover')) {
-        this.hideCustomBalloonToolbar();
+        this.hideEnhancedBalloonToolbar();
       }
     }, 150);
   }
@@ -584,14 +617,12 @@ export class TodoComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     
-    // Clean up custom balloon toolbar
     if (this.balloonToolbarElement) {
       document.body.removeChild(this.balloonToolbarElement);
       this.balloonToolbarElement = null;
     }
   }
 
-  // Helper method to check form validity
   isFormControlValid(form: FormGroup, controlName: string): boolean {
     const control = form.get(controlName);
     return control ? (control.valid || control.untouched) : true;
@@ -663,7 +694,6 @@ export class TodoComponent implements OnInit, OnDestroy {
   private applyFilters(): void {
     let filtered = [...this.todos];
 
-    // Apply status filter
     switch (this.currentFilter) {
       case 'active':
         filtered = filtered.filter(todo => !todo.completed);
@@ -672,11 +702,9 @@ export class TodoComponent implements OnInit, OnDestroy {
         filtered = filtered.filter(todo => todo.completed);
         break;
       default:
-        // Show all todos
         break;
     }
 
-    // Apply search filter
     if (this.searchText.trim()) {
       const searchLower = this.searchText.toLowerCase();
       filtered = filtered.filter(todo =>
@@ -686,7 +714,6 @@ export class TodoComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Sort by priority and date
     filtered.sort((a, b) => {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
@@ -701,9 +728,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     this.showEditPopup = false;
     this.editingTodo = null;
     this.editForm.reset();
-    
-    // Hide balloon toolbar when closing popup
-    this.hideCustomBalloonToolbar();
+    this.hideEnhancedBalloonToolbar();
   }
 
   clearCompleted(): void {
@@ -733,8 +758,6 @@ export class TodoComponent implements OnInit, OnDestroy {
       priority: 'medium',
       category: 'General'
     });
-    
-    // Hide balloon toolbar when hiding form
-    this.hideCustomBalloonToolbar();
+    this.hideEnhancedBalloonToolbar();
   }
 }
