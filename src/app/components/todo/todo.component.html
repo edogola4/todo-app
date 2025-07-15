@@ -1,0 +1,259 @@
+<div class="container">
+  <div class="header">
+    <h1>📝 DevExpress Todo Manager</h1>
+    <p>Manage your tasks with rich text editing capabilities</p>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">{{ stats.active }}</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">{{ stats.completed }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">{{ stats.byPriority.high }}</div>
+      <div class="stat-label">High Priority</div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div style="margin: 20px 0; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+    <dx-text-box 
+      placeholder="Search todos..." 
+      [value]="searchText"
+      (onValueChanged)="onSearchChange($event)"
+      width="300px">
+    </dx-text-box>
+
+    <dx-button 
+      [text]="currentFilter === 'all' ? 'All' : 'All'"
+      [type]="currentFilter === 'all' ? 'default' : 'normal'"
+      (onClick)="onFilterChange('all')">
+    </dx-button>
+
+    <dx-button 
+      [text]="currentFilter === 'active' ? 'Active' : 'Active'"
+      [type]="currentFilter === 'active' ? 'default' : 'normal'"
+      (onClick)="onFilterChange('active')">
+    </dx-button>
+
+    <dx-button 
+      [text]="currentFilter === 'completed' ? 'Completed' : 'Completed'"
+      [type]="currentFilter === 'completed' ? 'default' : 'normal'"
+      (onClick)="onFilterChange('completed')">
+    </dx-button>
+
+    <dx-button 
+      text="Clear Completed"
+      type="danger"
+      (onClick)="clearCompleted()"
+      [disabled]="stats.completed === 0">
+    </dx-button>
+  </div>
+
+  <!-- Add Todo Button -->
+  <div style="margin: 20px 0;">
+    <dx-button 
+      text="Add New Todo"
+      type="success"
+      icon="plus"
+      (onClick)="showAddTodoForm()"
+      [visible]="!showAddForm">
+    </dx-button>
+  </div>
+
+  <!-- Add Todo Form -->
+  <div class="add-todo-section" *ngIf="showAddForm">
+    <h3>Add New Todo</h3>
+    <form [formGroup]="addForm" (ngSubmit)="onAddTodo()">
+      <div style="margin-bottom: 15px;">
+        <dx-text-box 
+          placeholder="Enter todo title..."
+          formControlName="title"
+          [isValid]="addForm.get('title')?.valid || addForm.get('title')?.untouched"
+          width="100%">
+        </dx-text-box>
+        <div *ngIf="addForm.get('title')?.invalid && addForm.get('title')?.touched" 
+             style="color: red; font-size: 12px; margin-top: 5px;">
+          Title is required (minimum 3 characters)
+        </div>
+      </div>
+
+      <div style="margin-bottom: 15px; display: flex; gap: 15px;">
+        <dx-select-box 
+          [dataSource]="['low', 'medium', 'high']"
+          formControlName="priority"
+          placeholder="Priority"
+          width="150px">
+        </dx-select-box>
+
+        <dx-text-box 
+          placeholder="Category"
+          formControlName="category"
+          width="200px">
+        </dx-text-box>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Content:</label>
+        <ckeditor 
+          [editor]="Editor" 
+          formControlName="content"
+          [config]="editorConfig"
+          placeholder="Enter detailed description...">
+        </ckeditor>
+        <div *ngIf="addForm.get('content')?.invalid && addForm.get('content')?.touched" 
+             style="color: red; font-size: 12px; margin-top: 5px;">
+          Content is required (minimum 5 characters)
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <dx-button 
+          text="Add Todo"
+          type="success"
+          [disabled]="addForm.invalid"
+          useSubmitBehavior="true">
+        </dx-button>
+        <dx-button 
+          text="Cancel"
+          type="normal"
+          (onClick)="hideAddTodoForm()">
+        </dx-button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Todo List -->
+  <div class="todo-list">
+    <div *ngFor="let todo of filteredTodos" class="todo-item" [class.completed]="todo.completed">
+      <div style="display: flex; align-items: flex-start; gap: 15px;">
+        <dx-check-box 
+          [value]="todo.completed"
+          (onValueChanged)="onToggleComplete(todo.id)">
+        </dx-check-box>
+
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+            <h3 style="margin: 0; color: #333;" [style.text-decoration]="todo.completed ? 'line-through' : 'none'">
+              {{ todo.title }}
+            </h3>
+            <span 
+              class="priority-badge" 
+              [style.background-color]="getPriorityColor(todo.priority)"
+              style="padding: 2px 8px; border-radius: 12px; color: white; font-size: 11px; font-weight: bold;">
+              {{ todo.priority.toUpperCase() }}
+            </span>
+            <span style="font-size: 12px; color: #666;">{{ todo.category }}</span>
+          </div>
+
+          <div class="todo-content" [innerHTML]="todo.content" [style.opacity]="todo.completed ? '0.6' : '1'">
+          </div>
+
+          <div style="font-size: 12px; color: #999; margin-top: 10px;">
+            Created: {{ todo.createdAt | date:'short' }} | 
+            Updated: {{ todo.updatedAt | date:'short' }}
+          </div>
+
+          <div class="todo-actions">
+            <dx-button 
+              text="Edit"
+              type="normal"
+              icon="edit"
+              (onClick)="onEditTodo(todo)">
+            </dx-button>
+            <dx-button 
+              text="Delete"
+              type="danger"
+              icon="trash"
+              (onClick)="onDeleteTodo(todo.id)">
+            </dx-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredTodos.length === 0" style="text-align: center; padding: 40px; color: #666;">
+      <p *ngIf="todos.length === 0">No todos yet. Add your first todo above!</p>
+      <p *ngIf="todos.length > 0">No todos match your current filter/search.</p>
+    </div>
+  </div>
+
+  <!-- Edit Todo Popup -->
+  <dx-popup 
+    [visible]="showEditPopup"
+    [hideOnOutsideClick]="false"
+    [showCloseButton]="true"
+    (onHiding)="closeEditPopup()"
+    title="Edit Todo"
+    width="800px"
+    height="600px">
+    <div *dxTemplate="let data of 'content'">
+      <form [formGroup]="editForm" (ngSubmit)="onUpdateTodo()">
+        <div style="margin-bottom: 15px;">
+          <dx-text-box 
+            placeholder="Enter todo title..."
+            formControlName="title"
+            [isValid]="editForm.get('title')?.valid || editForm.get('title')?.untouched"
+            width="100%">
+          </dx-text-box>
+          <div *ngIf="editForm.get('title')?.invalid && editForm.get('title')?.touched" 
+               style="color: red; font-size: 12px; margin-top: 5px;">
+            Title is required (minimum 3 characters)
+          </div>
+        </div>
+
+        <div style="margin-bottom: 15px; display: flex; gap: 15px;">
+          <dx-select-box 
+            [dataSource]="['low', 'medium', 'high']"
+            formControlName="priority"
+            placeholder="Priority"
+            width="150px">
+          </dx-select-box>
+
+          <dx-text-box 
+            placeholder="Category"
+            formControlName="category"
+            width="200px">
+          </dx-text-box>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Content:</label>
+          <ckeditor 
+            [editor]="Editor" 
+            formControlName="content"
+            [config]="editorConfig"
+            placeholder="Enter detailed description...">
+          </ckeditor>
+          <div *ngIf="editForm.get('content')?.invalid && editForm.get('content')?.touched" 
+               style="color: red; font-size: 12px; margin-top: 5px;">
+            Content is required (minimum 5 characters)
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <dx-button 
+            text="Update Todo"
+            type="success"
+            [disabled]="editForm.invalid"
+            useSubmitBehavior="true">
+          </dx-button>
+          <dx-button 
+            text="Cancel"
+            type="normal"
+            (onClick)="closeEditPopup()">
+          </dx-button>
+        </div>
+      </form>
+    </div>
+  </dx-popup>
+</div>
