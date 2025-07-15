@@ -2,7 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
+// CKEditor - using proper import for Angular 17
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 // DevExpress imports
 import { 
@@ -12,9 +14,6 @@ import {
   DxPopupModule, 
   DxSelectBoxModule
 } from 'devextreme-angular';
-
-// CKEditor import
-import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 import { TodoService } from '../../services/todo.service';
 import { Todo } from '../../models/todo.model';
@@ -37,7 +36,8 @@ import { Todo } from '../../models/todo.model';
   providers: [TodoService]
 })
 export class TodoComponent implements OnInit, OnDestroy {
-  public Editor = ClassicEditor;
+  // Dynamic import for CKEditor to avoid type conflicts
+  public Editor: any;
   todos: Todo[] = [];
   filteredTodos: Todo[] = [];
   currentFilter = 'all';
@@ -58,22 +58,24 @@ export class TodoComponent implements OnInit, OnDestroy {
     byPriority: { high: 0, medium: 0, low: 0 }
   };
 
-  // CKEditor config
-  editorConfig = {
-    toolbar: [
-      'heading', '|',
-      'bold', 'italic', 'underline', '|',
-      'bulletedList', 'numberedList', '|',
-      'outdent', 'indent', '|',
-      'undo', 'redo'
-    ],
-    heading: {
-      options: [
-        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' }
+  // Simplified CKEditor config to avoid type issues while keeping balloon toolbar
+  editorConfig: any = {
+    toolbar: {
+      items: [
+        'bold', 'italic', 'underline', '|',
+        'bulletedList', 'numberedList', '|',
+        'link', 'blockQuote', '|',
+        'undo', 'redo'
       ]
-    }
+    },
+    // Balloon toolbar appears on text selection - this is the key feature!
+    balloonToolbar: [
+      'bold', 'italic', 'underline', '|',
+      'link', 'bulletedList', 'numberedList'
+    ],
+    language: 'en',
+    placeholder: 'Start typing your todo content...'
+    // Removed problematic typing and removePlugins config
   };
 
   private destroy$ = new Subject<void>();
@@ -95,6 +97,66 @@ export class TodoComponent implements OnInit, OnDestroy {
       priority: ['medium'],
       category: ['General']
     });
+
+    // Load CKEditor dynamically to avoid type conflicts
+    this.loadCKEditor();
+  }
+
+  async loadCKEditor() {
+    try {
+      const ClassicEditor = await import('@ckeditor/ckeditor5-build-classic');
+      this.Editor = ClassicEditor.default;
+      
+      console.log('CKEditor loaded successfully');
+    } catch (error) {
+      console.error('Error loading CKEditor:', error);
+      // Fallback - you could set a flag here to show a textarea instead
+    }
+  }
+
+  // Event handler for CKEditor ready event
+  onEditorReady(editor: any) {
+    console.log('CKEditor is ready!');
+    
+    // Add custom event listeners for enhanced UX
+    editor.model.document.on('change:data', () => {
+      // Handle data changes if needed
+    });
+
+    // Add selection change listener for custom context menu behavior
+    editor.model.document.selection.on('change:range', () => {
+      const selection = editor.model.document.selection;
+      if (!selection.isCollapsed) {
+        // Text is selected - balloon toolbar will automatically appear
+        console.log('Text selected - balloon toolbar should appear');
+        this.onTextSelected(editor, selection);
+      }
+    });
+
+    // Ensure balloon toolbar is enabled
+    const balloonToolbar = editor.plugins.get('BalloonToolbar');
+    if (balloonToolbar) {
+      console.log('Balloon toolbar is available');
+    }
+  }
+
+  private onTextSelected(editor: any, selection: any) {
+    // Custom logic when text is selected
+    // This is where you can add additional suggestions or context-specific tools
+    console.log('Text selection detected');
+    
+    // You could implement custom suggestions here
+    // For example, showing smart suggestions based on selected text
+  }
+
+  // Event handler for CKEditor focus
+  onEditorFocus(editor: any) {
+    console.log('Editor focused');
+  }
+
+  // Event handler for CKEditor blur
+  onEditorBlur(editor: any) {
+    console.log('Editor blurred');
   }
 
   ngOnInit(): void {
@@ -115,6 +177,12 @@ export class TodoComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // Helper method to check form validity
+  isFormControlValid(form: FormGroup, controlName: string): boolean {
+    const control = form.get(controlName);
+    return control ? (control.valid || control.untouched) : true;
   }
 
   onAddTodo(): void {

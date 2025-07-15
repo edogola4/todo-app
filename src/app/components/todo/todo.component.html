@@ -34,19 +34,19 @@
     </dx-text-box>
 
     <dx-button 
-      [text]="currentFilter === 'all' ? 'All' : 'All'"
+      [text]="'All'"
       [type]="currentFilter === 'all' ? 'default' : 'normal'"
       (onClick)="onFilterChange('all')">
     </dx-button>
 
     <dx-button 
-      [text]="currentFilter === 'active' ? 'Active' : 'Active'"
+      [text]="'Active'"
       [type]="currentFilter === 'active' ? 'default' : 'normal'"
       (onClick)="onFilterChange('active')">
     </dx-button>
 
     <dx-button 
-      [text]="currentFilter === 'completed' ? 'Completed' : 'Completed'"
+      [text]="'Completed'"
       [type]="currentFilter === 'completed' ? 'default' : 'normal'"
       (onClick)="onFilterChange('completed')">
     </dx-button>
@@ -78,7 +78,7 @@
         <dx-text-box 
           placeholder="Enter todo title..."
           formControlName="title"
-          [isValid]="addForm.get('title')?.valid || addForm.get('title')?.untouched"
+          [isValid]="isFormControlValid(addForm, 'title')"
           width="100%">
         </dx-text-box>
         <div *ngIf="addForm.get('title')?.invalid && addForm.get('title')?.touched" 
@@ -103,16 +103,34 @@
       </div>
 
       <div style="margin-bottom: 15px;">
-        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Content:</label>
-        <ckeditor 
-          [editor]="Editor" 
-          formControlName="content"
-          [config]="editorConfig"
-          placeholder="Enter detailed description...">
-        </ckeditor>
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">
+          Content: <small style="color: #666; font-weight: normal;">(Highlight text to see formatting options)</small>
+        </label>
+        <!-- Enhanced CKEditor with event handlers -->
+        <div *ngIf="Editor; else fallbackTextarea">
+          <ckeditor 
+            [editor]="Editor" 
+            formControlName="content"
+            [config]="editorConfig"
+            (ready)="onEditorReady($event)"
+            (focus)="onEditorFocus($event)"
+            (blur)="onEditorBlur($event)"
+            placeholder="Start typing your todo content...">
+          </ckeditor>
+        </div>
+        <ng-template #fallbackTextarea>
+          <textarea 
+            formControlName="content"
+            placeholder="Start typing your todo content..."
+            style="width: 100%; height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+          </textarea>
+        </ng-template>
         <div *ngIf="addForm.get('content')?.invalid && addForm.get('content')?.touched" 
              style="color: red; font-size: 12px; margin-top: 5px;">
           Content is required (minimum 5 characters)
+        </div>
+        <div style="font-size: 12px; color: #888; margin-top: 5px;">
+          💡 Tip: Select text to see formatting options appear instantly
         </div>
       </div>
 
@@ -121,7 +139,7 @@
           text="Add Todo"
           type="success"
           [disabled]="addForm.invalid"
-          useSubmitBehavior="true">
+          [useSubmitBehavior]="true">
         </dx-button>
         <dx-button 
           text="Cancel"
@@ -195,14 +213,14 @@
     (onHiding)="closeEditPopup()"
     title="Edit Todo"
     width="800px"
-    height="600px">
+    height="650px">
     <div *dxTemplate="let data of 'content'">
       <form [formGroup]="editForm" (ngSubmit)="onUpdateTodo()">
         <div style="margin-bottom: 15px;">
           <dx-text-box 
             placeholder="Enter todo title..."
             formControlName="title"
-            [isValid]="editForm.get('title')?.valid || editForm.get('title')?.untouched"
+            [isValid]="isFormControlValid(editForm, 'title')"
             width="100%">
           </dx-text-box>
           <div *ngIf="editForm.get('title')?.invalid && editForm.get('title')?.touched" 
@@ -227,16 +245,34 @@
         </div>
 
         <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Content:</label>
-          <ckeditor 
-            [editor]="Editor" 
-            formControlName="content"
-            [config]="editorConfig"
-            placeholder="Enter detailed description...">
-          </ckeditor>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">
+            Content: <small style="color: #666; font-weight: normal;">(Highlight text to see formatting options)</small>
+          </label>
+          <!-- Enhanced CKEditor with event handlers -->
+          <div *ngIf="Editor; else editFallbackTextarea">
+            <ckeditor 
+              [editor]="Editor" 
+              formControlName="content"
+              [config]="editorConfig"
+              (ready)="onEditorReady($event)"
+              (focus)="onEditorFocus($event)"
+              (blur)="onEditorBlur($event)"
+              placeholder="Start typing your todo content...">
+            </ckeditor>
+          </div>
+          <ng-template #editFallbackTextarea>
+            <textarea 
+              formControlName="content"
+              placeholder="Start typing your todo content..."
+              style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+            </textarea>
+          </ng-template>
           <div *ngIf="editForm.get('content')?.invalid && editForm.get('content')?.touched" 
                style="color: red; font-size: 12px; margin-top: 5px;">
             Content is required (minimum 5 characters)
+          </div>
+          <div style="font-size: 12px; color: #888; margin-top: 5px;">
+            💡 Tip: Select text to see formatting options appear instantly
           </div>
         </div>
 
@@ -245,7 +281,7 @@
             text="Update Todo"
             type="success"
             [disabled]="editForm.invalid"
-            useSubmitBehavior="true">
+            [useSubmitBehavior]="true">
           </dx-button>
           <dx-button 
             text="Cancel"
