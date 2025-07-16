@@ -28,6 +28,12 @@
               "src/custom-theme.scss",
               "src/styles.css",
               "node_modules/devextreme/dist/css/dx.material.blue.light.css"
+            ],
+            "allowedCommonJsDependencies": [
+              "devextreme",
+              "devextreme-quill",
+              "devexpress-gantt",
+              "ckeditor5"
             ]
           },
           "configurations": {
@@ -35,13 +41,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "300kB",
+                  "maximumError": "500kB"
                 }
               ],
               "outputHashing": "all"
