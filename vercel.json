@@ -1,12 +1,15 @@
 {
-    "build": {
-      "env": {
-        "NODE_OPTIONS": "--max-old-space-size=4096"
-      }
-    },
-    "functions": {
-      "app/**/*": {
-        "maxDuration": 30
+  "buildCommand": "ng build --configuration=production",
+  "outputDirectory": "dist/devexpress-todos-app",
+  "framework": "angular",
+  "installCommand": "npm ci",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/devexpress-todos-app"
       }
     }
-  }
+  ]
+}

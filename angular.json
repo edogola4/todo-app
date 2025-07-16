@@ -36,23 +36,13 @@
               "devexpress-diagram",
               "jszip",
               "ckeditor5",
-              "@ckeditor/ckeditor5-build-classic"
+              "@ckeditor/ckeditor5-build-classic",
+              "ckeditor5-premium-features"
             ]
           },
           "configurations": {
             "production": {
-              "budgets": [],
-              "outputHashing": "all",
-              "optimization": {
-                "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": false
-                }
-              },
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
