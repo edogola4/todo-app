@@ -3,6 +3,12 @@
   "outputDirectory": "dist/devexpress-todos-app",
   "framework": "angular",
   "installCommand": "npm ci",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
   "builds": [
     {
       "src": "package.json",
