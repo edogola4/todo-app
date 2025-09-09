@@ -1,24 +1,42 @@
-/* Theme Variables */
+/* 
+ * Theme Variables
+ * This file contains all the theme variables for the application.
+ * It supports both light and dark modes with system preference detection.
+ */
+
 :root {
-  /* Primary Colors */
+  /* ===== Color Scheme ===== */
+  --color-scheme: light;
+
+  /* ===== Light Theme (Default) ===== */
+  
+  /* Brand Colors */
   --primary: #2C4A47;
   --primary-light: #3D6B67;
   --primary-dark: #1A2D2B;
-  
-  /* Secondary Colors */
   --secondary: #D56C3B;
   --secondary-light: #E8A87C;
   --secondary-dark: #B34D1D;
   
-  /* Background Colors */
+  /* Background & Surface */
   --background: #F8F5F0;
   --surface: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --input-bg: #FFFFFF;
   
   /* Text Colors */
   --text-primary: #2D3436;
   --text-secondary: #636E72;
   --text-on-primary: #FFFFFF;
-  --text-on-secondary: #FFFFFF;
+  --text-on-secondary: #000000;
+  
+  /* UI Colors */
+  --border: #DFE6E9;
+  --divider: #E0E0E0;
+  --hover: rgba(0, 0, 0, 0.04);
+  --hover-bg: rgba(0, 0, 0, 0.05);
+  --selected: rgba(44, 94, 79, 0.08);
+  --shadow-color: rgba(0, 0, 0, 0.1);
   
   /* Status Colors */
   --success: #3A7D44;
@@ -26,34 +44,137 @@
   --error: #A52F2F;
   --info: #2D9CDB;
   
-  /* UI Colors */
-  --border: #DFE6E9;
-  --divider: #E0E0E0;
-  --hover: rgba(0, 0, 0, 0.04);
-  --selected: rgba(44, 94, 79, 0.08);
+  /* ===== Elevation ===== */
+  --elevation-1: 0 1px 3px var(--shadow-color), 0 1px 2px var(--shadow-color);
+  --elevation-2: 0 3px 6px var(--shadow-color), 0 3px 6px var(--shadow-color);
+  --elevation-3: 0 10px 20px var(--shadow-color), 0 6px 6px var(--shadow-color);
   
-  /* Elevation */
-  --elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-  --elevation-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-  --elevation-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-  
-  /* Spacing */
+  /* ===== Spacing ===== */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
   
-  /* Border Radius */
+  /* ===== Border Radius ===== */
   --border-radius-sm: 4px;
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
   --border-radius-full: 9999px;
+  
+  /* ===== Transitions ===== */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  --transition-slow: 400ms ease-in-out;
+  
+  /* ===== Z-index ===== */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
 }
 
-/* Dark Theme (optional) */
-[data-theme="dark"] {
-  --background: #1E1E1E;
+/* 
+ * Dark Theme 
+ * Applied when .dark-theme class is present on the html or body element
+ */
+.dark-theme {
+  --color-scheme: dark;
+  
+  /* Brand Colors */
+  --primary: #3A5F5B;
+  --primary-light: #4C7A75;
+  --primary-dark: #2C4A47;
+  --secondary: #D4A373;
+  --secondary-light: #E8C4A4;
+  --secondary-dark: #B38252;
+  
+  /* Background & Surface */
+  --background: #1A1F1E;
+  --surface: #2D3436;
+  --card-bg: #2D3436;
+  --input-bg: #3E4C4A;
+  
+  /* Text Colors */
+  --text-primary: #F8F5F0;
+  --text-secondary: #B2BEC3;
+  --text-on-primary: #FFFFFF;
+  --text-on-secondary: #000000;
+  
+  /* UI Colors */
+  --border: #3E4C4A;
+  --divider: #3E4C4A;
+  --hover: rgba(255, 255, 255, 0.08);
+  --hover-bg: rgba(255, 255, 255, 0.1);
+  --selected: rgba(82, 182, 154, 0.15);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  
+  /* Status Colors (slightly adjusted for dark mode) */
+  --success: #4CAF50;
+  --warning: #FFC107;
+  --error: #F44336;
+  --info: #2196F3;
+}
+
+/* 
+ * System Color Scheme Detection
+ * Automatically applies dark theme if system preference is dark and no explicit theme is set
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-scheme: dark;
+    
+    /* Brand Colors */
+    --primary: #3A5F5B;
+    --primary-light: #4C7A75;
+    --primary-dark: #2C4A47;
+    --secondary: #D4A373;
+    --secondary-light: #E8C4A4;
+    --secondary-dark: #B38252;
+    
+    /* Background & Surface */
+    --background: #1A1F1E;
+    --surface: #2D3436;
+    --card-bg: #2D3436;
+    --input-bg: #3E4C4A;
+    
+    /* Text Colors */
+    --text-primary: #F8F5F0;
+    --text-secondary: #B2BEC3;
+    --text-on-primary: #FFFFFF;
+    --text-on-secondary: #000000;
+    
+    /* UI Colors */
+    --border: #3E4C4A;
+    --divider: #3E4C4A;
+    --hover: rgba(255, 255, 255, 0.08);
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    --selected: rgba(82, 182, 154, 0.15);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    
+    /* Status Colors */
+    --success: #4CAF50;
+    --warning: #FFC107;
+    --error: #F44336;
+    --info: #2196F3;
+  }
+}
+
+/* 
+ * Global Styles
+ * These styles will be applied globally
+ */
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition: background-color var(--transition-normal), 
+              color var(--transition-normal);
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   --surface: #2D3436;
   --text-primary: #F8F5F2;
   --text-secondary: #B2BEC3;
