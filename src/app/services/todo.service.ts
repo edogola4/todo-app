@@ -1,7 +1,9 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable, of, combineLatest, Subject } from 'rxjs';
 import { map, takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { Todo, TodoFilterOptions, TodoStats, Priority } from '../models/todo.model';
+import { environment } from '../../environments/environment';
 
 // Simple UUID function
 function generateId(): string {
@@ -12,8 +14,9 @@ function generateId(): string {
   providedIn: 'root'
 })
 export class TodoService implements OnDestroy {
-  private readonly STORAGE_KEY = 'enterprise-todos';
-  private readonly TAGS_STORAGE_KEY = 'enterprise-tags';
+  private readonly STORAGE_KEY = `${environment.localStoragePrefix}todos`;
+  private readonly TAGS_STORAGE_KEY = `${environment.localStoragePrefix}tags`;
+  private isBrowser: boolean;
   private todosSubject = new BehaviorSubject<Todo[]>([]);
   private filterSubject = new BehaviorSubject<Partial<TodoFilterOptions>>({ 
     status: 'all',
@@ -40,7 +43,8 @@ export class TodoService implements OnDestroy {
   public loading$ = new BehaviorSubject<boolean>(false);
   public error$ = new Subject<string>();
 
-  constructor() {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     this.initializeData();
     this.setupFiltering();
   }
@@ -87,24 +91,30 @@ export class TodoService implements OnDestroy {
     }
   }
 
-  private saveTodos(): void {
+  private saveTodos(todos: Todo[]): void {
+    if (!this.isBrowser) return;
+    
     try {
-      const todos = this.todosSubject.value;
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(todos));
-      this.updateAvailableTags(todos);
-      this.updateAvailableCategories(todos);
+      this.todosSubject.next(todos);
+      
+      if (environment.enableDebug) {
+        console.debug('Todos saved:', { count: todos.length, storageKey: this.STORAGE_KEY });
+      }
     } catch (error) {
-      const errorMsg = 'Error saving todos';
-      console.error(errorMsg, error);
+      const errorMsg = 'Failed to save todos. Your changes may not be saved.';
+      console.error('Error saving todos to localStorage', error);
+      
+      if (environment.enableDebug) {
+        console.error('Debug info:', { error, todos, storageKey: this.STORAGE_KEY });
+      }
+      
       this.error$.next(errorMsg);
-    }
-  }
-
-  private saveTags(): void {
-    try {
-      localStorage.setItem(this.TAGS_STORAGE_KEY, JSON.stringify([...this.availableTags$.value]));
-    } catch (error) {
-      console.error('Error saving tags:', error);
+      
+      // If storage is full, try to handle it gracefully
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        this.handleStorageFullError();
+      }
     }
   }
 
@@ -268,7 +278,7 @@ export class TodoService implements OnDestroy {
 
     const updatedTodos = [...this.todosSubject.value, newTodo];
     this.todosSubject.next(updatedTodos);
-    this.saveTodos();
+    this.saveTodos(updatedTodos);
     return newTodo;
   }
 
@@ -289,7 +299,7 @@ export class TodoService implements OnDestroy {
     updatedTodos[todoIndex] = updatedTodo;
     
     this.todosSubject.next(updatedTodos);
-    this.saveTodos();
+    this.saveTodos(updatedTodos);
     
     return updatedTodo;
   }
@@ -304,7 +314,7 @@ export class TodoService implements OnDestroy {
     }
     
     this.todosSubject.next(updatedTodos);
-    this.saveTodos();
+    this.saveTodos(updatedTodos);
     return true;
   }
 
@@ -330,7 +340,7 @@ export class TodoService implements OnDestroy {
     const currentTodos = this.todosSubject.value;
     const activeTodos = currentTodos.filter(todo => !todo.completed);
     this.todosSubject.next(activeTodos);
-    this.saveTodos();
+    this.saveTodos(activeTodos);
   }
 
   // Update filter options
@@ -351,5 +361,28 @@ export class TodoService implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.error$.complete();
+  }
+
+  private handleStorageFullError(): void {
+    if (!this.isBrowser) return;
+    
+    // Try to free up some space by removing old todos
+    try {
+      const todos = this.todosSubject.value;
+      if (todos.length > 50) {
+        // Keep only the most recent 50 todos
+        const recentTodos = [...todos]
+          .sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
+          .slice(0, 50);
+          
+        this.saveTodos(recentTodos);
+        this.error$.next('Storage was full. We\'ve cleared some space by removing older todos.');
+      } else {
+        this.error$.next('Storage is full. Please delete some todos to free up space.');
+      }
+    } catch (error) {
+      console.error('Error handling storage full error', error);
+      this.error$.next('Storage is full. Please delete some todos to free up space.');
+    }
   }
 }

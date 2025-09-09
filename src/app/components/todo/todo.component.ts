@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { 
@@ -8,8 +8,12 @@ import {
   DxTextBoxModule, 
   DxCheckBoxModule, 
   DxPopupModule, 
-  DxSelectBoxModule
+  DxSelectBoxModule,
+  DxTextAreaModule,
+  DxToolbarModule,
+  DxToastModule
 } from 'devextreme-angular';
+import { NgIf, NgFor } from '@angular/common';
 
 import { TodoService } from '../../services/todo.service';
 import { Todo } from '../../models/todo.model';
@@ -41,19 +45,24 @@ interface CommandGroups {
 @Component({
   selector: 'app-todo',
   standalone: true,
-  styleUrls: ['./todo.component.scss', './todo.component.css'],
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
+    CKEditorModule,
     DxButtonModule,
     DxTextBoxModule,
     DxCheckBoxModule,
     DxPopupModule,
     DxSelectBoxModule,
-    CKEditorModule
+    DxTextAreaModule,
+    DxToolbarModule,
+    DxToastModule,
+    NgIf,
+    NgFor
   ],
   templateUrl: './todo.component.html',
-  providers: [TodoService]
+  styleUrls: ['./todo.component.scss']
 })
 export class TodoComponent implements OnInit, OnDestroy {
   @ViewChild('editorWordCountElement') private editorWordCount!: ElementRef<HTMLDivElement>;
