@@ -1,14 +1,14 @@
 <div align="center">
-  <h1>TaskFlow Pro</h1>
+  <h1>Todo App</h1>
   <p>✨ A sophisticated task management application built with Angular and modern web technologies</p>
 
-[![CI/CD Status](https://github.com/edogola4/taskflow-pro/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/edogola4/taskflow-pro/actions/workflows/ci-cd.yml)
-[![Vercel](https://vercelbadge.vercel.app/api/edogola4/taskflow-pro)](https://taskflow-pro.vercel.app)
+[![CI/CD Status](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml)
+[![Vercel](https://vercelbadge.vercel.app/api/edogola4/todo-app)](https://todo-app.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Last Commit](https://img.shields.io/github/last-commit/edogola4/taskflow-pro)](https://github.com/edogola4/taskflow-pro/commits/main)
-[![GitHub Issues](https://img.shields.io/github/issues/edogola4/taskflow-pro)](https://github.com/edogola4/taskflow-pro/issues)
-[![GitHub PRs](https://img.shields.io/github/issues-pr/edogola4/taskflow-pro)](https://github.com/edogola4/taskflow-pro/pulls)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/edogola4/taskflow-pro/graphs/commit-activity)
+[![Last Commit](https://img.shields.io/github/last-commit/edogola4/todo-app)](https://github.com/edogola4/todo-app/commits/main)
+[![GitHub Issues](https://img.shields.io/github/issues/edogola4/todo-app)](https://github.com/edogola4/todo-app/issues)
+[![GitHub PRs](https://img.shields.io/github/issues-pr/edogola4/todo-app)](https://github.com/edogola4/todo-app/pulls)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/edogola4/todo-app/graphs/commit-activity) 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 [![Angular](https://img.shields.io/badge/Angular-16.2.0-DD0031?logo=angular&logoColor=white)](https://angular.io/)
@@ -31,8 +31,8 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/edogola4/taskflow-pro.git
-   cd taskflow-pro
+   git clone https://github.com/edogola4/todo-app.git
+   cd todo-app
    ```
 
 2. Install dependencies:
