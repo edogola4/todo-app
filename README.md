@@ -1,6 +1,67 @@
-# DevexpressTodosApp
+<div align="center">
+  <h1>TaskFlow Pro</h1>
+  <p>✨ A sophisticated task management application built with Angular and modern web technologies</p>
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.0.
+[![CI/CD Status](https://github.com/edogola4/taskflow-pro/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/edogola4/taskflow-pro/actions/workflows/ci-cd.yml)
+[![Vercel](https://vercelbadge.vercel.app/api/edogola4/taskflow-pro)](https://taskflow-pro.vercel.app)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Last Commit](https://img.shields.io/github/last-commit/edogola4/taskflow-pro)](https://github.com/edogola4/taskflow-pro/commits/main)
+[![GitHub Issues](https://img.shields.io/github/issues/edogola4/taskflow-pro)](https://github.com/edogola4/taskflow-pro/issues)
+[![GitHub PRs](https://img.shields.io/github/issues-pr/edogola4/taskflow-pro)](https://github.com/edogola4/taskflow-pro/pulls)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/edogola4/taskflow-pro/graphs/commit-activity)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
+[![Angular](https://img.shields.io/badge/Angular-16.2.0-DD0031?logo=angular&logoColor=white)](https://angular.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.1.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![RxJS](https://img.shields.io/badge/RxJS-7.8.0-B7178C?logo=reactivex&logoColor=white)](https://rxjs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.16.0-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+
+</div>
+
+## 🚀 Features
+
+- **Rich Text Editing**: Create and edit tasks with a powerful rich text editor
+- **Task Organization**: Categorize and prioritize your tasks effectively
+- **Responsive Design**: Works seamlessly across all devices
+- **Dark/Light Mode**: Built-in theme support for comfortable usage
+- **Real-time Updates**: Instant feedback on task changes
+- **Data Persistence**: Your tasks are saved automatically
+
+## 📦 Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/edogola4/taskflow-pro.git
+   cd taskflow-pro
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   ng serve
+   ```
+
+4. Open your browser and navigate to `http://localhost:4200/`
+
+## 🛠️ Development
+
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
+
+### Build
+
+Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+
+### Running unit tests
+
+Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+
+### Running end-to-end tests
+
+Run `ng e2e` to execute the end-to-end tests via a platform of your choice.
 
 ## Development server
 

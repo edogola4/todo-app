@@ -1,0 +1,175 @@
+/* Theme Variables */
+:root {
+  /* Primary Colors */
+  --primary: #2C4A47;
+  --primary-light: #3D6B67;
+  --primary-dark: #1A2D2B;
+  
+  /* Secondary Colors */
+  --secondary: #D56C3B;
+  --secondary-light: #E8A87C;
+  --secondary-dark: #B34D1D;
+  
+  /* Background Colors */
+  --background: #F8F5F0;
+  --surface: #FFFFFF;
+  
+  /* Text Colors */
+  --text-primary: #2D3436;
+  --text-secondary: #636E72;
+  --text-on-primary: #FFFFFF;
+  --text-on-secondary: #FFFFFF;
+  
+  /* Status Colors */
+  --success: #3A7D44;
+  --warning: #D4A024;
+  --error: #A52F2F;
+  --info: #2D9CDB;
+  
+  /* UI Colors */
+  --border: #DFE6E9;
+  --divider: #E0E0E0;
+  --hover: rgba(0, 0, 0, 0.04);
+  --selected: rgba(44, 94, 79, 0.08);
+  
+  /* Elevation */
+  --elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  --elevation-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  --elevation-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Border Radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-full: 9999px;
+}
+
+/* Dark Theme (optional) */
+[data-theme="dark"] {
+  --background: #1E1E1E;
+  --surface: #2D3436;
+  --text-primary: #F8F5F2;
+  --text-secondary: #B2BEC3;
+  --border: #3E4C59;
+  --divider: #3E4C59;
+  --hover: rgba(255, 255, 255, 0.04);
+  --selected: rgba(224, 122, 95, 0.16);
+}
+
+/* Base Styles */
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.25rem; }
+h6 { font-size: 1rem; }
+
+/* Buttons */
+button, .btn {
+  background-color: var(--primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--text-on-primary);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  &.secondary {
+    background-color: var(--secondary);
+    color: var(--text-on-secondary);
+    
+    &:hover {
+      background-color: var(--secondary-dark);
+    }
+  }
+  
+  &.outline {
+    background-color: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    
+    &:hover {
+      background-color: var(--selected);
+    }
+  }
+}
+
+/* Cards */
+.card {
+  background-color: var(--surface);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--elevation-1);
+  padding: var(--spacing-md);
+  transition: box-shadow 0.3s ease-in-out;
+  
+  &:hover {
+    box-shadow: var(--elevation-2);
+  }
+}
+
+/* Forms */
+input, textarea, select {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: border-color 0.2s ease-in-out;
+  width: 100%;
+  
+  &:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(44, 94, 79, 0.2);
+    outline: none;
+  }
+  
+  &::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+  }
+}
+
+/* Utility Classes */
+.text-primary { color: var(--primary); }
+.text-secondary { color: var(--secondary); }
+.bg-primary { background-color: var(--primary); }
+.bg-secondary { background-color: var(--secondary); }
+.text-on-primary { color: var(--text-on-primary); }
+.text-on-secondary { color: var(--text-on-secondary); }

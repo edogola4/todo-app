@@ -41,6 +41,7 @@ interface CommandGroups {
 @Component({
   selector: 'app-todo',
   standalone: true,
+  styleUrls: ['./todo.component.scss', './todo.component.css'],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -52,7 +53,6 @@ interface CommandGroups {
     CKEditorModule
   ],
   templateUrl: './todo.component.html',
-  styleUrls: ['./todo.component.css'],
   providers: [TodoService]
 })
 export class TodoComponent implements OnInit, OnDestroy {
@@ -688,14 +688,16 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   private initializeTodoSubscriptions(): void {
-    this.todoService.getTodos()
+    // Subscribe to filtered todos
+    this.todoService.filteredTodos$
       .pipe(takeUntil(this.destroy$))
       .subscribe(todos => {
         this.todos = todos;
-        this.applyFilters();
+        this.filteredTodos = [...todos];
       });
 
-    this.todoService.getStats()
+    // Subscribe to stats
+    this.todoService.stats$
       .pipe(takeUntil(this.destroy$))
       .subscribe(stats => {
         this.stats = stats;
@@ -711,12 +713,10 @@ export class TodoComponent implements OnInit, OnDestroy {
   onAddTodo(): void {
     if (this.addForm.valid) {
       const formValue = this.addForm.value;
-      this.todoService.addTodo(
-        formValue.title,
-        formValue.content,
-        formValue.priority,
-        formValue.category
-      );
+      this.todoService.addTodo(formValue.title, formValue.content, {
+        priority: formValue.priority,
+        category: formValue.category
+      });
       this.resetForm(this.addForm);
       this.showAddForm = false;
     }
@@ -758,52 +758,17 @@ export class TodoComponent implements OnInit, OnDestroy {
 
   // Filter and search methods
   onFilterChange(filter: string): void {
-    this.currentFilter = filter;
-    this.applyFilters();
+    this.todoService.updateFilter({ status: filter as any });
   }
 
   onSearchChange(event: any): void {
-    this.searchText = event.target.value;
-    this.applyFilters();
+    this.todoService.updateSearch(event.target.value);
   }
 
-  private applyFilters(): void {
-    let filtered = this.filterByStatus([...this.todos]);
-    filtered = this.filterBySearch(filtered);
-    filtered = this.sortTodos(filtered);
-    this.filteredTodos = filtered;
-  }
-
-  private filterByStatus(todos: Todo[]): Todo[] {
-    switch (this.currentFilter) {
-      case 'active':
-        return todos.filter(todo => !todo.completed);
-      case 'completed':
-        return todos.filter(todo => todo.completed);
-      default:
-        return todos;
-    }
-  }
-
-  private filterBySearch(todos: Todo[]): Todo[] {
-    if (!this.searchText.trim()) {
-      return todos;
-    }
-
-    const searchLower = this.searchText.toLowerCase();
-    return todos.filter(todo =>
-      todo.title.toLowerCase().includes(searchLower) ||
-      todo.content.toLowerCase().includes(searchLower) ||
-      todo.category.toLowerCase().includes(searchLower)
-    );
-  }
-
-  private sortTodos(todos: Todo[]): Todo[] {
-    return todos.sort((a, b) => {
-      const priorityDiff = this.PRIORITY_ORDER[b.priority] - this.PRIORITY_ORDER[a.priority];
-      if (priorityDiff !== 0) return priorityDiff;
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
+  // Filter methods are now handled by the service
+  applyFilters(): void {
+    // This method is kept for compatibility but does nothing
+    // as filtering is now handled by the service
   }
 
   // UI helper methods
