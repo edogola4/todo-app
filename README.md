@@ -2,7 +2,7 @@
   <h1>Todo App</h1>
   <p>✨ A sophisticated task management application built with Angular and modern web technologies</p>
 
-[![CI/CD Status](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml)
+<!-- [![CI/CD Status](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml) -->
 [![Vercel](https://vercelbadge.vercel.app/api/edogola4/todo-app)](https://todo-app.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Last Commit](https://img.shields.io/github/last-commit/edogola4/todo-app)](https://github.com/edogola4/todo-app/commits/main)
