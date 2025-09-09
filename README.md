@@ -20,6 +20,11 @@
 
 ## 🚀 Features
 
+- **CI/CD Pipeline**: Automated testing and deployment with GitHub Actions
+- **Preview Deployments**: Automatic preview deployments for pull requests
+- **Production Deployments**: Automated deployment to Vercel on main branch updates
+- **Testing**: Unit and end-to-end testing integration
+
 - **Rich Text Editing**: Create and edit tasks with a powerful rich text editor
 - **Task Organization**: Categorize and prioritize your tasks effectively
 - **Responsive Design**: Works seamlessly across all devices
@@ -46,6 +51,30 @@
    ```
 
 4. Open your browser and navigate to `http://localhost:4200/`
+
+## 🔄 CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+### Workflows
+
+1. **CI Workflow**
+   - Triggered on push to main and pull requests
+   - Runs linting, tests, and builds the application
+   - Uploads build artifacts
+
+2. **Vercel Deployment**
+   - Deploys to Vercel on push to main
+   - Creates preview deployments for pull requests
+   - Requires `VERCEL_TOKEN` secret in GitHub repository settings
+
+### Environment Variables
+
+Set up the following secrets in your GitHub repository settings:
+
+- `VERCEL_TOKEN`: Vercel authentication token
+- `VERCEL_ORG_ID`: Vercel organization ID
+- `VERCEL_PROJECT_ID`: Vercel project ID
 
 ## 🛠️ Development
 

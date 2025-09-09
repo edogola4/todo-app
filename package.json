@@ -7,8 +7,13 @@
     "build": "ng build --configuration=production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "lint": "ng lint",
+    "e2e": "ng e2e",
     "serve": "ng serve --open",
-    "build-prod": "ng build --configuration production"
+    "build:prod": "ng build --configuration production",
+    "build:staging": "ng build --configuration staging",
+    "analyze": "ng build --stats-json && webpack-bundle-analyzer dist/browser/stats.json"
   },
   "private": true,
   "dependencies": {
