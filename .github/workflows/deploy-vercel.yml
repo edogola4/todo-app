@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 # Set environment variables for the entire workflow
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
