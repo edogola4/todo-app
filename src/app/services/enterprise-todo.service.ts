@@ -1,6 +1,6 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, combineLatest, of } from 'rxjs';
-import { map, takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
+import { map, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { Todo, TodoFilterOptions, TodoStats, Priority } from '../models/todo.model';
 
 // Simple UUID function
@@ -59,7 +59,7 @@ export class EnterpriseTodoService implements OnDestroy {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        const todos = JSON.parse(stored).map((todo: any) => ({
+        const todos = JSON.parse(stored).map((todo: Partial<Todo> & { createdAt: string; updatedAt: string; dueDate?: string }) => ({
           ...todo,
           createdAt: new Date(todo.createdAt),
           updatedAt: new Date(todo.updatedAt || todo.createdAt),
@@ -192,20 +192,26 @@ export class EnterpriseTodoService implements OnDestroy {
         
         const order = options.sortOrder === 'asc' ? 1 : -1;
         
-        switch (options.sortBy) {
-          case 'priority':
-            const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
-            return (priorityOrder[a.priority] - priorityOrder[b.priority]) * order;
-          case 'dueDate':
-            const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
-            const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
-            return (dateA - dateB) * order;
-          case 'updatedAt':
-            return (new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) * order;
-          case 'createdAt':
-          default:
-            return (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) * order;
+        // Handle priority sorting
+        if (options.sortBy === 'priority') {
+          const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
+          return (priorityOrder[a.priority] - priorityOrder[b.priority]) * order;
         }
+        
+        // Handle due date sorting
+        if (options.sortBy === 'dueDate') {
+          const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+          const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+          return (dateA - dateB) * order;
+        }
+        
+        // Handle updatedAt sorting
+        if (options.sortBy === 'updatedAt') {
+          return (new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) * order;
+        }
+        
+        // Default to createdAt sorting
+        return (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) * order;
       });
   }
 
