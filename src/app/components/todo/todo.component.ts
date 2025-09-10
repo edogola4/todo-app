@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
+import { ValueChangedEvent } from 'devextreme/ui/text_box';
 import { CommonModule, NgIf, NgFor } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
@@ -17,11 +18,20 @@ import {
 import { TodoService } from '../../services/todo.service';
 import { Todo } from '../../models/todo.model';
 
+// Event type for CKEditor document events
+interface CKEditorEvent extends Event {
+  name: string;
+  source: {
+    isReadOnly: boolean;
+  };
+}
+
 // Extended Editor type to include additional properties and methods
-type ExtendedEditor = Editor & {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ExtendedEditor = any & {
   // Basic editor properties
   plugins: {
-    get: <T = any>(pluginName: string) => T | undefined;
+    get: <T = unknown>(pluginName: string) => T | undefined;
   };
   
   // UI related properties
@@ -29,7 +39,7 @@ type ExtendedEditor = Editor & {
     element: HTMLElement;
     view: {
       document: {
-        on: (event: string, callback: (event: any) => void) => void;
+        on: (event: string, callback: (event: CKEditorEvent) => void) => void;
       };
     };
   };
@@ -49,7 +59,7 @@ type ExtendedEditor = Editor & {
   editing: {
     view: {
       document: {
-        on: (event: string, callback: (event: any) => void) => void;
+        on: (event: string, callback: (event: CKEditorEvent) => void) => void;
       };
     };
   };
@@ -59,7 +69,7 @@ type ExtendedEditor = Editor & {
   execute: (command: string, ...args: unknown[]) => void;
   
   // Additional properties we might need
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 // Interfaces for better type safety
@@ -121,8 +131,10 @@ export class TodoComponent implements OnInit, OnDestroy {
   private todoService = inject(TodoService);
   private fb = inject(FormBuilder);
 
-  // Editor properties
-  public Editor: any; // Using any for CKEditor to avoid type issues with dynamic imports
+  // Editor properties - using any to avoid complex type definitions with CKEditor
+  // The CKEditor type is complex and varies between versions, so we use any here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public Editor: any;
   public isLayoutReady = false;
   public editorConfig: EditorConfig = {
     toolbar: [
@@ -210,7 +222,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     try {
       // Use dynamic import to load CKEditor
       const { default: ClassicEditor } = await import('@ckeditor/ckeditor5-build-classic');
-      this.Editor = ClassicEditor; // Update the assignment to use the correct type
+      this.Editor = ClassicEditor;
       this.isLayoutReady = true;
     } catch (error) {
       console.error('Error loading CKEditor:', error);
@@ -282,7 +294,8 @@ export class TodoComponent implements OnInit, OnDestroy {
     this.setupEditorListeners(editor);
   }
 
-  public onEditorBlur(event: { editor: Editor }): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onEditorBlur(_event: { editor: Editor }): void {
     // Blur handling is already managed in setupEditorListeners
     // No additional action needed here
   }
@@ -408,7 +421,8 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   // Balloon toolbar functionality
-  private setupEnhancedBalloonToolbar(editor: ExtendedEditor): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private setupEnhancedBalloonToolbar(_editor: ExtendedEditor): void {
     if (!this.balloonToolbarElement) {
       this.createBalloonToolbar();
       this.addBalloonToolbarStyles();
@@ -564,7 +578,7 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   // Enhanced command execution
-  private executeEnhancedCommand(editor: any, command: string): void {
+  private executeEnhancedCommand(editor: ExtendedEditor, command: string): void {
     if (!editor?.execute) return;
 
     const commands = this.getEditorCommands();
@@ -590,7 +604,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     }
   }
 
-  private executeHeadingCommand(editor: any, value: string): void {
+  private executeHeadingCommand(editor: ExtendedEditor, value: string): void {
     this.safeExecute(() => {
       const headingCommand = editor.commands.get('heading');
       if (headingCommand) {
@@ -641,7 +655,8 @@ export class TodoComponent implements OnInit, OnDestroy {
           const viewFragment = editor.data.processor.toView(emoji);
           const modelFragment = editor.data.toModel(viewFragment);
           editor.model.insertContent(modelFragment);
-        } catch (error) {
+        } catch {
+          // Fallback to simple text insertion if the fragment approach fails
           editor.execute('insertText', { text: emoji });
         }
       });
@@ -703,7 +718,8 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   // Balloon toolbar display management
-  private showEnhancedBalloonToolbar(editor: ExtendedEditor, selection: any): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private showEnhancedBalloonToolbar(editor: ExtendedEditor, _selection: unknown): void {
     if (!this.balloonToolbarElement) {
       this.createBalloonToolbar();
       if (!this.balloonToolbarElement) return;
@@ -744,7 +760,8 @@ export class TodoComponent implements OnInit, OnDestroy {
     this.balloonToolbarElement.style.display = 'block';
   }
 
-  private calculateOptimalPosition(toolbarRect: DOMRect, selection: unknown): { left: number; top: number } {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private calculateOptimalPosition(toolbarRect: DOMRect, _selection: unknown): { left: number; top: number } {
     let left = toolbarRect.left + (toolbarRect.width / 2) - (toolbarRect.width / 2);
     let top = toolbarRect.top - toolbarRect.height - 10;
     
@@ -888,12 +905,15 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   // Filter and search methods
-  onFilterChange(filter: string): void {
-    this.todoService.updateFilter({ status: filter as any });
+  onFilterChange(filter: 'all' | 'active' | 'completed'): void {
+    this.todoService.updateFilter({ status: filter });
+    this.currentFilter = filter;
   }
 
-  onSearchChange(event: any): void {
-    this.todoService.updateSearch(event.target.value);
+  onSearchChange(event: ValueChangedEvent): void {
+    const searchValue = event.value || '';
+    this.todoService.updateSearch(searchValue);
+    this.searchText = searchValue;
   }
 
   // Filter methods are now handled by the service
@@ -939,6 +959,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     try {
       callback();
     } catch (error: unknown) {
+      // Intentionally using error in the log
       console.error('Error in editor operation:', error instanceof Error ? error.message : String(error));
     }
   }
@@ -953,19 +974,31 @@ export class TodoComponent implements OnInit, OnDestroy {
     return tmp.textContent || tmp.innerText || '';
   }
 
-  private getSelectedText(editor: any): string {
+  private getSelectedText(editor: {
+    model: {
+      document: {
+        selection: {
+          getRanges: () => {
+            getItems: () => { data?: string }[];
+          }[];
+        };
+      };
+    };
+  }): string {
     try {
       const selection = editor.model.document.selection;
       let text = '';
       for (const range of selection.getRanges()) {
-        for (const item of (range as any).getItems()) {
+        for (const item of range.getItems()) {
           if (item.data) {
             text += item.data;
           }
         }
       }
       return text;
-    } catch (error) {
+    } catch (error: unknown) {
+      // Log the error for debugging purposes
+      console.debug('Error getting selected text:', error);
       return '';
     }
   }
