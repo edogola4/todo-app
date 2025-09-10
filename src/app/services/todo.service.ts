@@ -1,5 +1,7 @@
-import { Injectable, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, OnDestroy, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+
+declare const global: any;
 import { BehaviorSubject, Observable, of, combineLatest, Subject } from 'rxjs';
 import { map, takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { Todo, TodoFilterOptions, TodoStats, Priority } from '../models/todo.model';
@@ -14,6 +16,7 @@ function generateId(): string {
   providedIn: 'root'
 })
 export class TodoService implements OnDestroy {
+  private readonly platformId: Object = inject(PLATFORM_ID);
   private readonly STORAGE_KEY = `${environment.localStoragePrefix}todos`;
   private readonly TAGS_STORAGE_KEY = `${environment.localStoragePrefix}tags`;
   private isBrowser: boolean;
@@ -43,7 +46,7 @@ export class TodoService implements OnDestroy {
   public loading$ = new BehaviorSubject<boolean>(false);
   public error$ = new Subject<string>();
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
     this.initializeData();
     this.setupFiltering();
@@ -57,26 +60,38 @@ export class TodoService implements OnDestroy {
   private loadTodos(): void {
     this.loading$.next(true);
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const todos = JSON.parse(stored).map((todo: any) => ({
-          ...todo,
-          createdAt: new Date(todo.createdAt),
-          updatedAt: new Date(todo.updatedAt || todo.createdAt),
-          dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
-          tags: todo.tags || [],
-          isPinned: todo.isPinned || false
-        }));
-        this.todosSubject.next(todos);
-        this.updateAvailableTags(todos);
-        this.updateAvailableCategories(todos);
-      }
+      const todos = this.getTodosFromStorage();
+      this.todosSubject.next(todos);
+      this.updateAvailableTags(todos);
+      this.updateAvailableCategories(todos);
     } catch (error) {
       const errorMsg = 'Error loading todos';
       console.error(errorMsg, error);
       this.error$.next(errorMsg);
     } finally {
       this.loading$.next(false);
+    }
+  }
+
+  private getTodosFromStorage(): Todo[] {
+    if (!this.isBrowser) return [];
+    
+    try {
+      const storage = this.isBrowser ? window.localStorage : global?.localStorage;
+      if (!storage) return [];
+      
+      const todos = storage.getItem(this.STORAGE_KEY);
+      return todos ? JSON.parse(todos).map((todo: any) => ({
+        ...todo,
+        createdAt: new Date(todo.createdAt),
+        updatedAt: new Date(todo.updatedAt || todo.createdAt),
+        dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
+        tags: todo.tags || [],
+        isPinned: todo.isPinned || false
+      })) : [];
+    } catch (error) {
+      console.error('Error reading todos from storage:', error);
+      return [];
     }
   }
 
@@ -95,7 +110,10 @@ export class TodoService implements OnDestroy {
     if (!this.isBrowser) return;
     
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(todos));
+      const storage = this.isBrowser ? window.localStorage : global?.localStorage;
+      if (!storage) return;
+      
+      storage.setItem(this.STORAGE_KEY, JSON.stringify(todos));
       this.todosSubject.next(todos);
       
       if (environment.enableDebug) {
