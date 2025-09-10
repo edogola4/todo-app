@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
+import { CommonModule, NgIf, NgFor } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import type { Editor, EditorConfig } from '@ckeditor/ckeditor5-core';
 import { 
   DxButtonModule, 
   DxTextBoxModule, 
@@ -13,17 +14,60 @@ import {
   DxToolbarModule,
   DxToastModule
 } from 'devextreme-angular';
-import { NgIf, NgFor } from '@angular/common';
-
 import { TodoService } from '../../services/todo.service';
 import { Todo } from '../../models/todo.model';
+
+// Extended Editor type to include additional properties and methods
+type ExtendedEditor = Editor & {
+  // Basic editor properties
+  plugins: {
+    get: <T = any>(pluginName: string) => T | undefined;
+  };
+  
+  // UI related properties
+  ui: {
+    element: HTMLElement;
+    view: {
+      document: {
+        on: (event: string, callback: (event: any) => void) => void;
+      };
+    };
+  };
+  
+  // Model related properties
+  model: {
+    document: {
+      on: (event: string, callback: () => void) => void;
+      selection: {
+        isCollapsed: boolean;
+        on: (event: string, callback: () => void) => void;
+      };
+    };
+  };
+  
+  // Editing related properties
+  editing: {
+    view: {
+      document: {
+        on: (event: string, callback: (event: any) => void) => void;
+      };
+    };
+  };
+  
+  // Core methods
+  getData: () => string;
+  execute: (command: string, ...args: unknown[]) => void;
+  
+  // Additional properties we might need
+  [key: string]: any;
+};
 
 // Interfaces for better type safety
 interface EditorCommand {
   name: string;
   icon: string;
   title: string;
-  action: (editor: any) => void;
+  action: (editor: ExtendedEditor) => void;
 }
 
 interface FormConfig {
@@ -40,6 +84,12 @@ interface CommandGroups {
   formatting: EditorCommand[];
   premium: EditorCommand[];
   undoRedo: EditorCommand[];
+}
+
+interface WordCountStats {
+  words: number;
+  characters: number;
+  charactersWithSpaces: number;
 }
 
 @Component({
@@ -67,10 +117,14 @@ interface CommandGroups {
 export class TodoComponent implements OnInit, OnDestroy {
   @ViewChild('editorWordCountElement') private editorWordCount!: ElementRef<HTMLDivElement>;
 
+  // Services
+  private todoService = inject(TodoService);
+  private fb = inject(FormBuilder);
+
   // Editor properties
-  public Editor: any;
+  public Editor: any; // Using any for CKEditor to avoid type issues with dynamic imports
   public isLayoutReady = false;
-  public editorConfig: any = {
+  public editorConfig: EditorConfig = {
     toolbar: [
       'heading', '|',
       'bold', 'italic', 'underline', '|',
@@ -109,7 +163,7 @@ export class TodoComponent implements OnInit, OnDestroy {
   // Private properties
   private destroy$ = new Subject<void>();
   private balloonToolbarElement: HTMLElement | null = null;
-  private currentEditor: any = null;
+  private currentEditor: ExtendedEditor | null = null;
   private wordCountDisplay: HTMLElement | null = null;
 
   // Constants
@@ -134,10 +188,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     content: [Validators.required, Validators.minLength(5)]
   };
 
-  constructor(
-    private todoService: TodoService,
-    private fb: FormBuilder
-  ) {
+  constructor() {
     this.initializeForms();
     this.loadCKEditor();
   }
@@ -157,14 +208,10 @@ export class TodoComponent implements OnInit, OnDestroy {
 
   private async loadCKEditor(): Promise<void> {
     try {
-      const ClassicEditor = await import('@ckeditor/ckeditor5-build-classic');
-      this.Editor = (ClassicEditor as any).default;
-      
-      setTimeout(() => {
-        this.isLayoutReady = true;
-      }, 100);
-      
-      console.log('CKEditor loaded successfully!');
+      // Use dynamic import to load CKEditor
+      const { default: ClassicEditor } = await import('@ckeditor/ckeditor5-build-classic');
+      this.Editor = ClassicEditor; // Update the assignment to use the correct type
+      this.isLayoutReady = true;
     } catch (error) {
       console.error('Error loading CKEditor:', error);
       this.isLayoutReady = true;
@@ -172,88 +219,129 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   // Editor event handlers
-  public onEditorReady(editor: any): void {
-    console.log('CKEditor is ready!');
-    this.currentEditor = editor;
-    
-    this.setupEditorFeatures(editor);
-    this.setupEditorListeners(editor);
+  public onEditorReady(editor: Editor): void {
+    try {
+      // Type assertion to ExtendedEditor
+      const extendedEditor = editor as unknown as ExtendedEditor;
+      this.currentEditor = extendedEditor;
+      
+      // Setup editor features and listeners
+      this.setupEditorFeatures(extendedEditor);
+      this.setupEditorListeners(extendedEditor);
+      
+      // Setup word count after a small delay to ensure editor is fully initialized
+      setTimeout(() => {
+        this.setupWordCount(extendedEditor);
+      }, 100);
+    } catch (error) {
+      console.error('Error initializing editor:', error);
+    }
   }
 
-  private setupEditorFeatures(editor: any): void {
-    this.setupWordCount(editor);
+  private setupEditorFeatures(editor: ExtendedEditor): void {
+    // Word count is now initialized in onEditorReady after a delay
     this.setupEnhancedBalloonToolbar(editor);
   }
 
-  private setupEditorListeners(editor: any): void {
+  private setupEditorListeners(editor: ExtendedEditor): void {
     // Selection change listener
     this.safeExecute(() => {
-      editor.model.document.selection.on('change:range', () => {
-        const selection = editor.model.document.selection;
-        if (!selection.isCollapsed) {
-          this.showEnhancedBalloonToolbar(editor, selection);
-        } else {
-          this.hideEnhancedBalloonToolbar();
-        }
-      });
+      if (editor.model?.document?.selection) {
+        editor.model.document.selection.on('change:range', () => {
+          if (editor.model?.document?.selection) {
+            const selection = editor.model.document.selection;
+            if (!selection.isCollapsed) {
+              this.showEnhancedBalloonToolbar(editor, selection);
+            } else {
+              this.hideEnhancedBalloonToolbar();
+            }
+          }
+        });
+      }
     });
 
     // Blur listener
     this.safeExecute(() => {
-      editor.editing.view.document.on('blur', () => {
-        setTimeout(() => this.hideEnhancedBalloonToolbar(), 200);
-      });
+      if (editor.editing?.view?.document) {
+        editor.editing.view.document.on('blur', () => {
+          setTimeout(() => this.hideEnhancedBalloonToolbar(), 200);
+        });
+      }
     });
 
     // Content change listener
-    editor.model.document.on('change:data', () => {
-      this.updateWordCount(editor);
-    });
+    if (editor.model?.document) {
+      editor.model.document.on('change:data', () => {
+        this.updateWordCount(editor);
+      });
+    }
   }
 
-  public onEditorFocus(event: any): void {
-    console.log('Editor focused');
+  public onEditorFocus(event: { editor: Editor }): void {
+    const editor = event.editor as unknown as ExtendedEditor;
+    this.setupEditorListeners(editor);
   }
 
-  public onEditorBlur(event: any): void {
-    console.log('Editor blurred');
-    setTimeout(() => {
-      if (!this.balloonToolbarElement?.matches(':hover')) {
-        this.hideEnhancedBalloonToolbar();
-      }
-    }, 150);
+  public onEditorBlur(event: { editor: Editor }): void {
+    // Blur handling is already managed in setupEditorListeners
+    // No additional action needed here
   }
 
   // Word count functionality
-  private setupWordCount(editor: any): void {
+  private setupWordCount(editor: ExtendedEditor): void {
+    if (!editor) return;
+    
     // Try to use CKEditor's built-in word count plugin
     if (this.tryBuiltInWordCount(editor)) {
       return;
     }
 
-    // Fallback to custom implementation
+    // Fallback to custom word count implementation
     this.createCustomWordCount();
+    this.appendWordCountToEditor(editor);
+    
+    // Initial count
     this.updateWordCount(editor);
+    
+    // Update count on content changes
+    if (editor.model?.document) {
+      editor.model.document.on('change:data', () => {
+        this.updateWordCount(editor);
+      });
+    }
   }
 
-  private tryBuiltInWordCount(editor: any): boolean {
+  private tryBuiltInWordCount(editor: ExtendedEditor): boolean {
     try {
+      if (!editor.plugins) return false;
+      
       const wordCountPlugin = editor.plugins.get('WordCount');
-      if (wordCountPlugin && this.editorWordCount?.nativeElement) {
-        this.clearElement(this.editorWordCount.nativeElement);
-        this.editorWordCount.nativeElement.appendChild(wordCountPlugin.wordCountContainer);
-        return true;
+      if (!wordCountPlugin || !this.editorWordCount?.nativeElement) {
+        return false;
       }
+      
+      const container = wordCountPlugin.wordCountContainer;
+      if (!container) return false;
+      
+      this.clearElement(this.editorWordCount.nativeElement);
+      this.editorWordCount.nativeElement.appendChild(container);
+      return true;
     } catch (error) {
-      console.log('WordCount plugin not available, using custom implementation');
+      console.warn('WordCount plugin not available, falling back to custom implementation:', error);
+      return false;
     }
-    return false;
   }
 
   private createCustomWordCount(): void {
+    if (!this.editorWordCount?.nativeElement) return;
+    
     this.wordCountDisplay = document.createElement('div');
-    this.wordCountDisplay.className = 'custom-word-count';
+    this.wordCountDisplay.className = 'word-count-display';
     this.wordCountDisplay.style.cssText = this.getWordCountStyles();
+    this.wordCountDisplay.textContent = '0 words | 0 characters';
+    
+    this.clearElement(this.editorWordCount.nativeElement);
+    this.editorWordCount.nativeElement.appendChild(this.wordCountDisplay);
   }
 
   private getWordCountStyles(): string {
@@ -273,21 +361,30 @@ export class TodoComponent implements OnInit, OnDestroy {
     `;
   }
 
-  private updateWordCount(editor: any): void {
-    if (!this.wordCountDisplay) return;
-
+  private updateWordCount(editor: ExtendedEditor | null): void {
+    if (!editor) return;
+    
     try {
       const content = editor.getData();
       const stats = this.calculateWordStats(content);
+      const displayText = this.formatWordCountDisplay(stats);
       
-      this.wordCountDisplay.innerHTML = this.formatWordCountDisplay(stats);
-      this.appendWordCountToEditor(editor);
+      // Update the word count display in the editor UI
+      if (this.wordCountDisplay) {
+        this.wordCountDisplay.textContent = displayText;
+      }
+      
+      // Also update the word count in the editor's native element if available
+      if (this.editorWordCount?.nativeElement) {
+        this.clearElement(this.editorWordCount.nativeElement);
+        this.editorWordCount.nativeElement.textContent = displayText;
+      }
     } catch (error) {
       console.error('Error updating word count:', error);
     }
   }
 
-  private calculateWordStats(content: string): { words: number; characters: number; charactersWithSpaces: number } {
+  private calculateWordStats(content: string): WordCountStats {
     const textContent = this.stripHtml(content);
     const words = textContent.trim() ? textContent.trim().split(/\s+/).length : 0;
     const characters = textContent.length;
@@ -296,24 +393,22 @@ export class TodoComponent implements OnInit, OnDestroy {
     return { words, characters, charactersWithSpaces };
   }
 
-  private formatWordCountDisplay(stats: { words: number; characters: number; charactersWithSpaces: number }): string {
-    return `
-      <span>Words: <strong>${stats.words}</strong></span>
-      <span>Characters: <strong>${stats.characters}</strong></span>
-      <span>With spaces: <strong>${stats.charactersWithSpaces}</strong></span>
-    `;
+  private formatWordCountDisplay(stats: WordCountStats): string {
+    return `${stats.words} ${stats.words === 1 ? 'word' : 'words'} | ${stats.characters} ${stats.characters === 1 ? 'character' : 'characters'}`;
   }
 
-  private appendWordCountToEditor(editor: any): void {
+  private appendWordCountToEditor(editor: ExtendedEditor): void {
+    if (!editor.ui?.element || !this.wordCountDisplay) return;
+    
     const editorElement = editor.ui.element;
-    if (editorElement && !editorElement.querySelector('.custom-word-count')) {
+    if (!editorElement.querySelector('.word-count-display')) {
       editorElement.style.position = 'relative';
       editorElement.appendChild(this.wordCountDisplay);
     }
   }
 
   // Balloon toolbar functionality
-  private setupEnhancedBalloonToolbar(editor: any): void {
+  private setupEnhancedBalloonToolbar(editor: ExtendedEditor): void {
     if (!this.balloonToolbarElement) {
       this.createBalloonToolbar();
       this.addBalloonToolbarStyles();
@@ -443,17 +538,17 @@ export class TodoComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     const button = target.closest('.balloon-btn') as HTMLElement;
     
-    if (button && button.dataset['command']) {
+    if (button && button.dataset['command'] && this.currentEditor) {
       event.preventDefault();
       event.stopPropagation();
       this.executeEnhancedCommand(this.currentEditor, button.dataset['command']);
-      setTimeout(() => this.updateEnhancedBalloonStates(this.currentEditor), 50);
+      setTimeout(() => this.updateEnhancedBalloonStates(this.currentEditor!), 50);
     }
   }
 
   private handleBalloonToolbarChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
-    if (target.id === 'heading-select') {
+    if (target.id === 'heading-select' && this.currentEditor) {
       event.preventDefault();
       event.stopPropagation();
       
@@ -461,7 +556,9 @@ export class TodoComponent implements OnInit, OnDestroy {
       this.executeHeadingCommand(this.currentEditor, target.value);
       
       setTimeout(() => {
-        this.updateEnhancedBalloonStates(this.currentEditor);
+        if (this.currentEditor) {
+          this.updateEnhancedBalloonStates(this.currentEditor);
+        }
       }, 100);
     }
   }
@@ -504,7 +601,7 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   // Specific command handlers
-  private handleLinkCommand(editor: any): void {
+  private handleLinkCommand(editor: ExtendedEditor): void {
     const selectedText = this.getSelectedText(editor);
     if (selectedText) {
       const url = prompt('Enter URL:', 'https://');
@@ -516,7 +613,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     }
   }
 
-  private createTodoList(editor: any): void {
+  private createTodoList(editor: ExtendedEditor): void {
     this.safeExecute(() => {
       // Try CKEditor's built-in todo list
       if (editor.commands.get('todoList')) {
@@ -534,7 +631,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     });
   }
 
-  private insertEmoji(editor: any): void {
+  private insertEmoji(editor: ExtendedEditor): void {
     const emojis = ['😀', '😊', '😍', '🤔', '👍', '👎', '❤️', '🎉', '🔥', '💡', '⭐', '✅', '❌', '📝', '💼'];
     const emoji = prompt(`Choose emoji (${emojis.join(' ')}):`);
     
@@ -551,7 +648,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     }
   }
 
-  private toggleSourceEditing(editor: any): void {
+  private toggleSourceEditing(editor: ExtendedEditor): void {
     this.safeExecute(() => {
       if (editor.commands.get('sourceEditing')) {
         editor.execute('sourceEditing');
@@ -567,7 +664,7 @@ export class TodoComponent implements OnInit, OnDestroy {
     });
   }
 
-  private executeCustomUnderline(editor: any): void {
+  private executeCustomUnderline(editor: ExtendedEditor): void {
     this.safeExecute(() => {
       if (editor.commands.get('underline')) {
         editor.execute('underline');
@@ -606,8 +703,11 @@ export class TodoComponent implements OnInit, OnDestroy {
   }
 
   // Balloon toolbar display management
-  private showEnhancedBalloonToolbar(editor: any, selection: any): void {
-    if (!this.balloonToolbarElement) return;
+  private showEnhancedBalloonToolbar(editor: ExtendedEditor, selection: any): void {
+    if (!this.balloonToolbarElement) {
+      this.createBalloonToolbar();
+      if (!this.balloonToolbarElement) return;
+    }
 
     const domSelection = window.getSelection();
     if (domSelection?.rangeCount) {
@@ -624,24 +724,35 @@ export class TodoComponent implements OnInit, OnDestroy {
   private positionBalloonToolbar(rect: DOMRect): void {
     if (!this.balloonToolbarElement) return;
 
-    this.balloonToolbarElement.style.display = 'flex';
-    
-    const toolbarRect = this.balloonToolbarElement.getBoundingClientRect();
-    const position = this.calculateOptimalPosition(rect, toolbarRect);
-    
-    this.balloonToolbarElement.style.left = `${position.left}px`;
-    this.balloonToolbarElement.style.top = `${position.top}px`;
+    const editorElement = document.querySelector('.ck-editor__editable');
+    if (!editorElement) return;
+
+    const editorRect = editorElement.getBoundingClientRect();
+    const toolbarHeight = this.balloonToolbarElement.offsetHeight;
+    const padding = 8;
+
+    // Calculate position relative to the editor
+    const top = rect.top - editorRect.top - toolbarHeight - padding;
+    const left = rect.left - editorRect.left + (rect.width / 2) - (this.balloonToolbarElement.offsetWidth / 2);
+
+    // Ensure the toolbar stays within the editor bounds
+    const maxLeft = editorRect.width - this.balloonToolbarElement.offsetWidth - padding;
+    const boundedLeft = Math.max(padding, Math.min(left, maxLeft));
+
+    this.balloonToolbarElement.style.top = `${Math.max(padding, top)}px`;
+    this.balloonToolbarElement.style.left = `${boundedLeft}px`;
+    this.balloonToolbarElement.style.display = 'block';
   }
 
-  private calculateOptimalPosition(selectionRect: DOMRect, toolbarRect: DOMRect): { left: number; top: number } {
-    let left = selectionRect.left + (selectionRect.width / 2) - (toolbarRect.width / 2);
-    let top = selectionRect.top - toolbarRect.height - 10;
+  private calculateOptimalPosition(toolbarRect: DOMRect, selection: unknown): { left: number; top: number } {
+    let left = toolbarRect.left + (toolbarRect.width / 2) - (toolbarRect.width / 2);
+    let top = toolbarRect.top - toolbarRect.height - 10;
     
     // Adjust for viewport boundaries
     left = Math.max(10, Math.min(left, window.innerWidth - toolbarRect.width - 10));
     
     if (top < 10) {
-      top = selectionRect.bottom + 10;
+      top = toolbarRect.bottom + 10;
     }
     
     return { left, top };
@@ -653,14 +764,22 @@ export class TodoComponent implements OnInit, OnDestroy {
     }
   }
 
-  private updateEnhancedBalloonStates(editor: any): void {
-    if (!this.balloonToolbarElement || !editor) return;
+  private updateEnhancedBalloonStates(editor: ExtendedEditor): void {
+    if (!this.balloonToolbarElement) return;
 
+    // Update button states
     this.updateButtonStates(editor);
+    
+    // Update heading select
     this.updateHeadingSelect(editor);
+    
+    // Make sure the toolbar is visible
+    if (this.balloonToolbarElement) {
+      this.balloonToolbarElement.style.display = 'block';
+    }
   }
 
-  private updateButtonStates(editor: any): void {
+  private updateButtonStates(editor: ExtendedEditor): void {
     const buttons = this.balloonToolbarElement!.querySelectorAll('.balloon-btn');
     buttons.forEach((button: Element) => {
       const htmlButton = button as HTMLElement;
@@ -677,18 +796,21 @@ export class TodoComponent implements OnInit, OnDestroy {
     });
   }
 
-  private updateHeadingSelect(editor: any): void {
-    const headingSelect = this.balloonToolbarElement!.querySelector('#heading-select') as HTMLSelectElement;
-    if (headingSelect && editor.commands.get('heading')) {
-      this.safeExecute(() => {
-        const headingCommand = editor.commands.get('heading');
-        const currentHeading = headingCommand.value;
-        
-        headingSelect.value = (currentHeading === false || currentHeading === null || currentHeading === undefined) 
-          ? 'paragraph' 
-          : typeof currentHeading === 'string' ? currentHeading : 'paragraph';
-      });
-    }
+  private updateHeadingSelect(editor: ExtendedEditor): void {
+    if (!this.balloonToolbarElement) return;
+    
+    const headingSelect = this.balloonToolbarElement.querySelector('#heading-select') as HTMLSelectElement | null;
+    if (!headingSelect) return;
+    
+    this.safeExecute(() => {
+      const headingCommand = editor.commands?.get('heading');
+      if (!headingCommand) return;
+      
+      const currentHeading = headingCommand.value;
+      headingSelect.value = (currentHeading === false || currentHeading === null || currentHeading === undefined) 
+        ? 'paragraph' 
+        : typeof currentHeading === 'string' ? currentHeading : 'paragraph';
+    });
   }
 
   // Todo management methods
@@ -813,11 +935,11 @@ export class TodoComponent implements OnInit, OnDestroy {
     form.reset(this.DEFAULT_FORM_VALUES);
   }
 
-  private safeExecute(fn: () => void): void {
+  private safeExecute(callback: () => void): void {
     try {
-      fn();
-    } catch (error) {
-      console.error('Safe execution failed:', error);
+      callback();
+    } catch (error: unknown) {
+      console.error('Error in editor operation:', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -970,9 +1092,30 @@ export class TodoComponent implements OnInit, OnDestroy {
 
   // Cleanup
   ngOnDestroy(): void {
+    // Clean up RxJS subscriptions
     this.destroy$.next();
     this.destroy$.complete();
+    
+    // Clean up editor resources
     this.cleanup();
+    
+    // Clean up word count display
+    if (this.wordCountDisplay && this.wordCountDisplay.parentNode) {
+      this.wordCountDisplay.parentNode.removeChild(this.wordCountDisplay);
+      this.wordCountDisplay = null;
+    }
+    
+    // Clean up balloon toolbar
+    if (this.balloonToolbarElement && this.balloonToolbarElement.parentNode) {
+      this.balloonToolbarElement.parentNode.removeChild(this.balloonToolbarElement);
+      this.balloonToolbarElement = null;
+    }
+    
+    // Remove any global styles we added
+    const styleElement = document.getElementById('balloon-toolbar-styles');
+    if (styleElement && styleElement.parentNode) {
+      styleElement.parentNode.removeChild(styleElement);
+    }
   }
 
   private cleanup(): void {
