@@ -2,7 +2,6 @@
   <h1>Todo App</h1>
   <p>✨ A sophisticated task management application built with Angular and modern web technologies</p>
 
-<!-- [![CI/CD Status](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/edogola4/todo-app/actions/workflows/ci-cd.yml) -->
 [![Vercel](https://vercelbadge.vercel.app/api/edogola4/todo-app)](https://todo-app.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Last Commit](https://img.shields.io/github/last-commit/edogola4/todo-app)](https://github.com/edogola4/todo-app/commits/main)
@@ -15,22 +14,37 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.1.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![RxJS](https://img.shields.io/badge/RxJS-7.8.0-B7178C?logo=reactivex&logoColor=white)](https://rxjs.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-18.16.0-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Jasmine](https://img.shields.io/badge/Jasmine-4.6.0-8A4182?logo=jasmine&logoColor=white)](https://jasmine.github.io/)
+[![Karma](https://img.shields.io/badge/Karma-6.4.0-EB3E3E?logo=karma&logoColor=white)](https://karma-runner.github.io/)
 
 </div>
 
 ## 🚀 Features
 
-- **CI/CD Pipeline**: Automated testing and deployment with GitHub Actions
-- **Preview Deployments**: Automatic preview deployments for pull requests
-- **Production Deployments**: Automated deployment to Vercel on main branch updates
-- **Testing**: Unit and end-to-end testing integration
+### Authentication & Security
+- 🔐 **JWT Authentication**: Secure user authentication with JSON Web Tokens
+- 🔄 **Session Management**: Automatic token refresh and secure storage
+- 🔒 **Password Reset**: Secure password reset flow with email verification
+- 👤 **User Profiles**: Personalized user experience with profile management
 
-- **Rich Text Editing**: Create and edit tasks with a powerful rich text editor
-- **Task Organization**: Categorize and prioritize your tasks effectively
-- **Responsive Design**: Works seamlessly across all devices
-- **Dark/Light Mode**: Built-in theme support for comfortable usage
-- **Real-time Updates**: Instant feedback on task changes
-- **Data Persistence**: Your tasks are saved automatically
+### Task Management
+- 📝 **Rich Text Editing**: Create and edit tasks with a powerful rich text editor
+- 🏷️ **Task Organization**: Categorize and prioritize your tasks effectively
+- 🔄 **Drag & Drop**: Intuitive task reordering with drag and drop
+- 🔍 **Search & Filter**: Quickly find tasks with powerful search and filtering
+- 📅 **Due Dates & Reminders**: Never miss a deadline with due dates and notifications
+
+### User Experience
+- 🌓 **Dark/Light Mode**: Built-in theme support for comfortable usage
+- 📱 **Responsive Design**: Works seamlessly across all devices
+- ⚡ **Progressive Web App**: Installable and works offline
+- 🌍 **Internationalization**: Support for multiple languages
+
+### Development & Deployment
+- 🛠 **CI/CD Pipeline**: Automated testing and deployment with GitHub Actions
+- 🔄 **Preview Deployments**: Automatic preview deployments for pull requests
+- 🚀 **Production Deployments**: Automated deployment to Vercel on main branch updates
+- 🧪 **Testing**: Comprehensive unit and integration testing with Jasmine/Karma
 
 ## 📦 Installation
 
@@ -76,29 +90,131 @@ Set up the following secrets in your GitHub repository settings:
 - `VERCEL_ORG_ID`: Vercel organization ID
 - `VERCEL_PROJECT_ID`: Vercel project ID
 
+## 🧪 Testing
+
+### Unit Tests
+
+Run the unit tests to verify the functionality of individual components and services:
+
+```bash
+# Run all unit tests
+ng test
+
+# Run tests in watch mode
+ng test --watch=true
+
+# Run a specific test file
+ng test --include=**/components/auth/login/login.component.spec.ts
+```
+
+### Testing Strategy
+
+- **Component Tests**: Test component templates and behavior
+- **Service Tests**: Verify API interactions and business logic
+- **Form Validation**: Test form controls and validators
+- **Authentication**: Test login/logout and protected routes
+
+### Test Coverage
+
+Generate a test coverage report:
+
+```bash
+ng test --code-coverage
+```
+
+Coverage reports will be available in `coverage/` directory.
+
 ## 🛠️ Development
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
+### Prerequisites
+
+- Node.js 18.16.0 or higher
+- npm 9.5.0 or higher
+- Angular CLI 16.2.0 or higher
+
+### Getting Started
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Start the development server: `ng serve`
+4. Open `http://localhost:4200` in your browser
 
 ### Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```bash
+# Development build
+ng build
 
-### Running unit tests
+# Production build with optimizations
+ng build --configuration production
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Build artifacts will be stored in the `dist/` directory.
 
-### Running end-to-end tests
+### Code Style
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice.
+This project follows the [Angular Style Guide](https://angular.io/guide/styleguide).
 
-## Development server
+- Run linting: `ng lint`
+- Format code: `npx prettier --write "**/*.{ts,html,scss,json,md}"`
 
-To start a local development server, run:
+## 🚀 Development Server
+
+Start the development server with hot module replacement:
 
 ```bash
+# Start the development server
 ng serve
+
+# Open in default browser automatically
+ng serve --open
+
+# Use a different port
+ng serve --port 4201
+
+# Enable production mode
+ng serve --configuration production
 ```
+
+The application will be available at `http://localhost:4200/` by default.
+
+## 🔧 Environment Configuration
+
+### Development
+Create a `src/environments/environment.ts` file with your development configuration:
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:3000/api', // Your API URL
+  appName: 'Todo App (Dev)'
+};
+```
+
+### Production
+Update `src/environments/environment.prod.ts` for production settings.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add some amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Angular](https://angular.io/) - The web framework used
+- [Angular Material](https://material.angular.io/) - UI component library
+- [RxJS](https://rxjs.dev/) - Reactive programming library
+- [Jasmine](https://jasmine.github.io/) - Testing framework
+- [Karma](https://karma-runner.github.io/) - Test runner
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
