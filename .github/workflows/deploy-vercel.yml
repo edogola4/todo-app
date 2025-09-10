@@ -68,6 +68,13 @@ jobs:
       - name: Verify Vercel CLI
         run: vercel --version
       
+      - name: Clean previous build artifacts
+        run: |
+          echo "Cleaning previous build artifacts..."
+          rm -rf .vercel
+          rm -rf dist
+          rm -rf node_modules/.cache
+      
       - name: Pull Vercel Environment Information
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -93,4 +100,8 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Deploying to Vercel..."
-          vercel deploy --prebuilt --prod --token $VERCEL_TOKEN
+          # First try with --prebuilt, if it fails, do a fresh deploy
+          if ! vercel deploy --prebuilt --prod --token $VERCEL_TOKEN; then
+            echo "Prebuilt deployment failed, trying fresh deployment..."
+            vercel deploy --prod --token $VERCEL_TOKEN
+          fi
