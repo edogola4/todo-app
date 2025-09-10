@@ -8,10 +8,11 @@ on:
   workflow_dispatch:
 
 # Set environment variables for the entire workflow
-
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_ORG: ${{ github.repository_owner }}
+  VERCEL_PROJECT: ${{ github.event.repository.name }}
 
 jobs:
   deploy:
@@ -21,56 +22,83 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
         
+      # Debug: Print environment information
+      - name: Debug Info
+        run: |
+          echo "GITHUB_EVENT_NAME: ${{ github.event_name }}"
+          echo "GITHUB_REF: ${{ github.ref }}"
+          echo "GITHUB_HEAD_REF: ${{ github.head_ref || 'N/A' }}"
+          echo "GITHUB_BASE_REF: ${{ github.base_ref || 'N/A' }}"
+          echo "VERCEL_ORG: ${{ env.VERCEL_ORG }}"
+          echo "VERCEL_PROJECT: ${{ env.VERCEL_PROJECT }}"
+      
       # Check if required secrets are available
-      - name: Check for Vercel token
-        id: check_vercel_token
+      - name: Verify Secrets
         run: |
           if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
             echo "::error::VERCEL_TOKEN is not set in repository secrets"
             exit 1
           fi
-          echo "VERCEL_TOKEN is set"
-        
+          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
+            echo "::warning::VERCEL_ORG_ID is not set in repository secrets"
+          fi
+          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "::warning::VERCEL_PROJECT_ID is not set in repository secrets"
+          fi
+          echo "All required secrets are set"
+      
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+      
       - name: Install dependencies
         run: npm ci
-        
+      
       - name: Build
         run: npm run build -- --configuration production
-        
+      
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
-        
-      - name: Verify Vercel CLI installation
+      
+      - name: Verify Vercel CLI
         run: vercel --version
-        
+      
       - name: Pull Vercel Environment Information
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
+          echo "Pulling Vercel environment information..."
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            vercel pull --yes --environment=preview
+            vercel pull --yes --environment=preview --token $VERCEL_TOKEN
           else
-            vercel pull --yes --environment=production
+            vercel pull --yes --environment=production --token $VERCEL_TOKEN
           fi
-          
+      
       - name: Build Project Artifacts
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel build
-        
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "Building project artifacts..."
+          vercel build --token $VERCEL_TOKEN
+      
       - name: Deploy Project Artifacts to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
+          echo "Deploying to Vercel..."
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            vercel deploy --prebuilt --preview
+            vercel deploy --prebuilt --preview --token $VERCEL_TOKEN
           else
-            vercel deploy --prebuilt --prod
+            vercel deploy --prebuilt --prod --token $VERCEL_TOKEN
           fi
