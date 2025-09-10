@@ -103,17 +103,13 @@
       </div>
 
       <div style="margin-bottom: 15px;">
-       <!---- <label style="display: block; margin-bottom: 5px; font-weight: bold;">
-          Content: <small style="color: #666; font-weight: normal;">(✨ Premium: Highlight text for instant formatting options)</small>
-        </label> -->
-        <label style="display: block; margin-bottom: 5px; font-weight: bold;">
-          Content: <small style="color: #666; font-weight: normal;">(✨ Premium: Highlight text for instant formatting options)</small>
-        </label>
-        
-        <!-- Premium CKEditor with balloon toolbar -->
         <div class="editor-container editor-container_classic-editor" *ngIf="isLayoutReady">
+          <label for="content-editor" style="display: block; margin-bottom: 5px; font-weight: bold;">
+            Content: <small style="color: #666; font-weight: normal;">(✨ Premium: Highlight text for instant formatting options)</small>
+          </label>
           <div class="editor-container__editor">
             <ckeditor 
+              id="content-editor"
               [editor]="Editor" 
               formControlName="content"
               [config]="editorConfig"
@@ -247,18 +243,13 @@
         </div>
 
         <div style="margin-bottom: 15px;">
-          <!--<label style="display: block; margin-bottom: 5px; font-weight: bold;">
-            Content: <small style="color: #666; font-weight: normal;">(✨ Premium: Highlight text for instant formatting)</small>
-          </label> -->
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">
-            Content: <small style="color: #666; font-weight: normal;">(✨ Premium: Highlight text for instant formatting)</small>
-          </label>
-          
-          
-          <!-- Premium CKEditor with balloon toolbar for editing -->
           <div class="editor-container editor-container_classic-editor" *ngIf="isLayoutReady">
+            <label for="edit-content-editor" style="display: block; margin-bottom: 5px; font-weight: bold;">
+              Content: <small style="color: #666; font-weight: normal;">(✨ Premium: Highlight text for instant formatting)</small>
+            </label>
             <div class="editor-container__editor">
               <ckeditor 
+                id="edit-content-editor"
                 [editor]="Editor" 
                 formControlName="content"
                 [config]="editorConfig"
