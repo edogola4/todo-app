@@ -1,9 +1,13 @@
-import { Injectable, OnDestroy, Inject, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, OnDestroy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
-declare const global: any;
+// Declare global for server-side rendering
+declare const global: {
+  localStorage?: Storage;
+};
+
 import { BehaviorSubject, Observable, of, combineLatest, Subject } from 'rxjs';
-import { map, takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
+import { map, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { Todo, TodoFilterOptions, TodoStats, Priority } from '../models/todo.model';
 import { environment } from '../../environments/environment';
 
@@ -16,7 +20,7 @@ function generateId(): string {
   providedIn: 'root'
 })
 export class TodoService implements OnDestroy {
-  private readonly platformId: Object = inject(PLATFORM_ID);
+  private readonly platformId: object = inject(PLATFORM_ID);
   private readonly STORAGE_KEY = `${environment.localStoragePrefix}todos`;
   private readonly TAGS_STORAGE_KEY = `${environment.localStoragePrefix}tags`;
   private isBrowser: boolean;
@@ -81,7 +85,7 @@ export class TodoService implements OnDestroy {
       if (!storage) return [];
       
       const todos = storage.getItem(this.STORAGE_KEY);
-      return todos ? JSON.parse(todos).map((todo: any) => ({
+      return todos ? JSON.parse(todos).map((todo: Partial<Todo> & { createdAt: string; updatedAt: string; dueDate?: string }) => ({
         ...todo,
         createdAt: new Date(todo.createdAt),
         updatedAt: new Date(todo.updatedAt || todo.createdAt),
@@ -158,23 +162,25 @@ export class TodoService implements OnDestroy {
 
   // Setup filtering and searching
   private setupFiltering(): void {
-    this.filteredTodos$ = combineLatest([
-      this.todos$,
-      this.filterSubject.pipe(debounceTime(300)),
-      this.searchSubject.pipe(
-        debounceTime(300),
-        distinctUntilChanged()
-      )
+    const filterOptions$ = combineLatest([
+      this.filterSubject,
+      this.searchSubject.pipe(debounceTime(300), distinctUntilChanged())
     ]).pipe(
-      map(([todos, filter, searchTerm]) => {
-        return this.applyFilters(todos, { ...filter, searchTerm });
-      }),
-      takeUntil(this.destroy$)
+      map(([filter, searchTerm]) => ({
+        ...filter,
+        searchTerm: searchTerm || undefined
+      } as TodoFilterOptions))
     );
 
-    this.stats$ = this.todos$.pipe(
-      map(todos => this.calculateStats(todos)),
-      takeUntil(this.destroy$)
+    this.filteredTodos$ = combineLatest([
+      this.todos$,
+      filterOptions$
+    ]).pipe(
+      map(([todos, options]) => this.applyFilters(todos, options))
+    );
+
+    this.stats$ = this.filteredTodos$.pipe(
+      map(todos => this.calculateStats(todos))
     );
   }
 
@@ -214,20 +220,26 @@ export class TodoService implements OnDestroy {
         
         const order = options.sortOrder === 'asc' ? 1 : -1;
         
-        switch (options.sortBy) {
-          case 'priority':
-            const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
-            return (priorityOrder[a.priority] - priorityOrder[b.priority]) * order;
-          case 'dueDate':
-            const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
-            const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
-            return (dateA - dateB) * order;
-          case 'updatedAt':
-            return (new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) * order;
-          case 'createdAt':
-          default:
-            return (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) * order;
+        // Handle priority sorting
+        if (options.sortBy === 'priority') {
+          const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
+          return (priorityOrder[a.priority] - priorityOrder[b.priority]) * order;
         }
+        
+        // Handle due date sorting
+        if (options.sortBy === 'dueDate') {
+          const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+          const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+          return (dateA - dateB) * order;
+        }
+        
+        // Handle updatedAt sorting
+        if (options.sortBy === 'updatedAt') {
+          return (new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) * order;
+        }
+        
+        // Default to createdAt sorting
+        return (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) * order;
       });
   }
 
