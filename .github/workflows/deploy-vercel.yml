@@ -7,6 +7,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Set environment variables for the entire workflow
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
 jobs:
   deploy:
     name: Deploy to Vercel
@@ -15,6 +20,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
+      # Check if required secrets are available
+      - name: Check for Vercel token
+        id: check_vercel_token
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::error::VERCEL_TOKEN is not set in repository secrets"
+            exit 1
+          fi
+          echo "VERCEL_TOKEN is set"
         
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -31,21 +46,30 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
         
+      - name: Verify Vercel CLI installation
+        run: vercel --version
+        
       - name: Pull Vercel Environment Information
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+            vercel pull --yes --environment=preview
           else
-            vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+            vercel pull --yes --environment=production
           fi
           
       - name: Build Project Artifacts
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build
         
       - name: Deploy Project Artifacts to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --preview
+            vercel deploy --prebuilt --preview
           else
-            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+            vercel deploy --prebuilt --prod
           fi
