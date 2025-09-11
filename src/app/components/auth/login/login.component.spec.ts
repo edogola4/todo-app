@@ -88,7 +88,7 @@ describe('LoginComponent', () => {
       rememberMe: false
     };
     
-    authService.login.and.returnValue(of({ accessToken: 'test-token', user: { id: 1, email: 'test@example.com' } } as unknown as { accessToken: string; user: { id: number; email: string } }));
+    authService.login.and.returnValue(of({ token: 'test-token', user: { id: '1', email: 'test@example.com', name: 'Test User' } }));
     
     component.loginForm.setValue(testCredentials);
     component.onSubmit();
@@ -102,7 +102,7 @@ describe('LoginComponent', () => {
   });
 
   it('should navigate to home on successful login with rememberMe false', () => {
-    authService.login.and.returnValue(of({ accessToken: 'test-token', user: { id: 1, email: 'test@example.com' } } as unknown as { accessToken: string; user: { id: number; email: string } }));
+    authService.login.and.returnValue(of({ token: 'test-token', user: { id: '1', email: 'test@example.com', name: 'Test User' } }));
     
     component.loginForm.setValue({
       email: 'test@example.com',
@@ -116,7 +116,7 @@ describe('LoginComponent', () => {
   });
 
   it('should navigate to home on successful login with rememberMe true', () => {
-    authService.login.and.returnValue(of({ accessToken: 'test-token', user: { id: 1, email: 'test@example.com' } } as unknown as { accessToken: string; user: { id: number; email: string } }));
+    authService.login.and.returnValue(of({ token: 'test-token', user: { id: '1', email: 'test@example.com', name: 'Test User' } }));
     
     component.loginForm.setValue({
       email: 'test@example.com',

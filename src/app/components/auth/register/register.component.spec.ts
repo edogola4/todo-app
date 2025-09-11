@@ -140,7 +140,7 @@ describe('RegisterComponent', () => {
   });
 
   it('should set error message on registration failure', () => {
-    const errorResponse = { error: { message: 'Registration failed' } } as unknown as Error;
+    const errorResponse = { error: { message: 'Registration failed. Please try again.' } } as unknown as Error;
     authService.register.and.returnValue(throwError(() => errorResponse));
     
     component.registerForm.setValue({
@@ -152,7 +152,7 @@ describe('RegisterComponent', () => {
     
     component.onSubmit();
     
-    expect(component.error).toBe('Email already exists');
+    expect(component.error).toBe('Registration failed. Please try again.');
   });
 
   it('should call socialLogin with provider', () => {
