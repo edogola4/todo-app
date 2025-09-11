@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -86,23 +86,21 @@ import { MatCardModule } from '@angular/material/card';
     }
   `]
 })
-export class ForgotPasswordComponent implements OnInit {
+export class ForgotPasswordComponent {
+  private formBuilder = inject(FormBuilder);
+  private authService = inject(AuthService);
+
   forgotPasswordForm: FormGroup;
   loading = false;
   submitted = false;
   error = '';
   successMessage = '';
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private authService: AuthService
-  ) {
+  constructor() {
     this.forgotPasswordForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]]
     });
   }
-
-  ngOnInit(): void {}
 
   // Convenience getter for easy access to form fields
   get f() { return this.forgotPasswordForm.controls; }

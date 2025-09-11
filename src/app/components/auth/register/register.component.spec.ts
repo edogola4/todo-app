@@ -110,12 +110,14 @@ describe('RegisterComponent', () => {
       confirmPassword: 'password123'
     };
     
-    authService.register.and.returnValue(of({} as any));
+    const mockResponse = { id: '1', email: 'test@example.com', name: 'Test User' };
+    authService.register.and.returnValue(of(mockResponse));
     
     component.registerForm.setValue(testUser);
     component.onSubmit();
     
     // Should not send confirmPassword to the server
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...expectedData } = testUser;
     expect(authService.register).toHaveBeenCalledWith(expectedData);
   });
@@ -128,7 +130,8 @@ describe('RegisterComponent', () => {
       confirmPassword: 'password123'
     };
     
-    authService.register.and.returnValue(of({} as any));
+    const mockResponse = { id: '1', email: 'test@example.com', name: 'Test User' };
+    authService.register.and.returnValue(of(mockResponse));
     
     component.registerForm.setValue(testUser);
     component.onSubmit();
@@ -137,8 +140,8 @@ describe('RegisterComponent', () => {
   });
 
   it('should set error message on registration failure', () => {
-    const error = { error: { message: 'Email already exists' } };
-    authService.register.and.returnValue(throwError(() => error));
+    const errorResponse = { error: { message: 'Registration failed' } } as unknown as Error;
+    authService.register.and.returnValue(throwError(() => errorResponse));
     
     component.registerForm.setValue({
       name: 'Test User',

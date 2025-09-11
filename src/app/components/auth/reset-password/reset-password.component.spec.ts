@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of, throwError } from 'rxjs';
 import { ResetPasswordComponent } from './reset-password.component';
@@ -31,6 +31,7 @@ describe('ResetPasswordComponent', () => {
     // Create a more complete router mock
     const routerSpy = {
       navigate: jasmine.createSpy('navigate').and.returnValue(Promise.resolve(true)),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       createUrlTree: jasmine.createSpy('createUrlTree').and.returnValue({} as any),
       serializeUrl: jasmine.createSpy('serializeUrl').and.returnValue(''),
       events: of(null) // Add events observable
@@ -74,7 +75,7 @@ describe('ResetPasswordComponent', () => {
     .compileComponents();
 
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    router = TestBed.inject(Router) as any;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
   beforeEach(() => {
