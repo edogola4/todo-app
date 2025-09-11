@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -107,6 +107,11 @@ import { MatCardModule } from '@angular/material/card';
   `]
 })
 export class ResetPasswordComponent implements OnInit {
+  private formBuilder = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   resetForm: FormGroup;
   loading = false;
   submitted = false;
@@ -114,12 +119,7 @@ export class ResetPasswordComponent implements OnInit {
   successMessage = '';
   private token: string | null = null;
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {
+  constructor() {
     this.resetForm = this.formBuilder.group({
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]

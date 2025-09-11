@@ -32,6 +32,7 @@
     "@ckeditor/ckeditor5-build-classic": "^41.4.2",
     "ckeditor5": "^43.0.0",
     "ckeditor5-premium-features": "^43.0.0",
+    "deps": "^1.0.0",
     "devextreme": "^24.2.0",
     "devextreme-angular": "^24.2.0",
     "rxjs": "~7.8.0",
