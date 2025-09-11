@@ -169,7 +169,7 @@ describe('AuthService', () => {
       localStorage.setItem('token', 'jwt.token.here');
       
       // Set up a spy on the currentUserSubject
-      const nextSpy = spyOn((service as any).currentUserSubject, 'next');
+      const nextSpy = spyOn((service as unknown as { currentUserSubject: { next: jasmine.Spy } }).currentUserSubject, 'next');
       
       // Call the method under test
       service.logout();
