@@ -362,7 +362,7 @@ export class TodoComponent implements OnInit, OnDestroy {
       position: absolute;
       bottom: -30px;
       right: 0;
-      background: #f8f9fa;
+      background:rgb(243, 245, 248);
       padding: 5px 10px;
       border: 1px solid #e0e0e0;
       border-radius: 4px;
